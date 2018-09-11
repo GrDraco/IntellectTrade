@@ -1,0 +1,1 @@
+{"name":"depth","is_default":true,"params_exchanges":{"kucoin":{"depth":{"symbol":"btc-usdt"}}},"started_exchanges":{"kucoin":{"depth":true}},"started_strategies":{}}

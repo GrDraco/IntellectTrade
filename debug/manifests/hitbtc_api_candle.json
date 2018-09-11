@@ -1,0 +1,56 @@
+{
+    "name": "Candle_API",
+    "exchange": "HitBTC",
+    "provider": "API",
+    "entity": "Candle",
+    "url": "https://api.hitbtc.com/api/2/public/candles/{symbol}",
+    "origin": "",
+    "request_json": {
+        "symbol": "",
+        "limit": "10",
+        "period": "D1"
+    },
+    "response": {
+        "success": [
+            "params"
+        ],
+        "failed": {
+            "message": [
+                "error",
+                "message"
+            ],
+            "description": [
+                "error",
+                "description"
+            ]
+        },
+        "values": {
+            "candles": {
+                "values_is_array": false,
+                "path": [],
+                "arr_timestamp": [
+                    "timestamp"
+                ],
+                "arr_open": [
+                    "open"
+                ],
+                "arr_close": [
+                    "close"
+                ],
+                "arr_min": [
+                    "min"
+                ],
+                "arr_max": [
+                    "max"
+                ],
+                "arr_volume": [
+                    "volume"
+                ],
+                "arr_volumeQuote": [
+                    "volumeQuote"
+                ]
+            }
+        }
+    },
+    "regular": false
+}

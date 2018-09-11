@@ -1,0 +1,1 @@
+{"name":"stoped","is_default":false,"params_exchanges":{"kucoin":{"tick":{"symbol":"btc-usdt"}}},"started_exchanges":{"kucoin":{"tick":false}},"started_strategies":{}}

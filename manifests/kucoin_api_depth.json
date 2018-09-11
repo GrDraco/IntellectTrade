@@ -1,0 +1,52 @@
+{
+    "name": "Depth_API",
+    "exchange": "Kucoin",
+    "provider": "API",
+    "entity": "Depth",
+    "url": "https://api.kucoin.com/v1/open/orders",
+    "origin": "",
+    "request_json": {
+        "symbol": ""
+    },
+    "response": {
+        "success": [
+            "data"
+        ],
+        "failed": {
+            "message": [
+                "msg"
+            ],
+            "description": []
+        },
+        "values": {
+            "asks": {
+                "values_is_array": true,
+                "path": [
+                    "data",
+                    "BUY"
+                ],
+                "index_price": 0,
+                "index_amount": 1,
+                "index_volume": 2
+            },
+            "bids": {
+                "values_is_array": true,
+                "path": [
+                    "data",
+                    "SELL"
+                ],
+                "index_price": 0,
+                "index_amount": 1,
+                "index_volume": 2
+            },
+            "symbol": [
+                "data",
+                "symbol"
+            ],
+            "timestamp": [
+                "timestamp"
+            ]
+        }
+    },
+    "regular": true
+}

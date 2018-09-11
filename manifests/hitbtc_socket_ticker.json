@@ -1,0 +1,53 @@
+{
+    "name": "Tick_Socket",
+    "exchange": "HitBTC",
+    "provider": "WebSocket",
+    "entity": "Tick",
+    "url": "wss://api.hitbtc.com/api/2/ws",
+    "origin": "http://localhost/",
+    "request_json": {
+        "method": "subscribeTicker",
+        "params": {
+            "symbol": ""
+        },
+        "id": 123
+    },
+    "response": {
+        "success": [
+            "params"
+        ],
+        "failed": {
+            "message": [
+                "error",
+                "message"
+            ],
+            "description": [
+                "error",
+                "description"
+            ]
+        },
+        "values": {
+            "ask": [
+                "params",
+                "ask"
+            ],
+            "bid": [
+                "params",
+                "bid"
+            ],
+            "volume": [
+                "params",
+                "volume"
+            ],
+            "symbol": [
+                "params",
+                "symbol"
+            ],
+            "timestamp": [
+                "params",
+                "timestamp"
+            ]
+        }
+    },
+    "regular": true
+}

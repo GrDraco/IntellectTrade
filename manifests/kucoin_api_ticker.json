@@ -1,0 +1,47 @@
+{
+    "name": "Tick_API",
+    "exchange": "Kucoin",
+    "provider": "API",
+    "entity": "Tick",
+    "url": "https://api.kucoin.com/v1/open/tick",
+    "origin": "",
+    "request_json": {
+        "symbol": ""
+    },
+    "response": {
+        "success": [
+            "data"
+        ],
+        "failed": {
+            "message": [
+                "msg"
+            ],
+            "description": []
+        },
+        "values": {
+            "ask": [
+                "data",
+                "buy"
+            ],
+            "bid": [
+                "data",
+                "sell"
+            ],
+            "volume": [
+                "data",
+                "volValue"
+            ],
+            "symbol": [
+                "data",
+                "symbol"
+            ],
+            "timestamp": [
+                "timestamp"
+            ],
+            "ping": [
+                "ping"
+            ]
+        }
+    },
+    "regular": true
+}

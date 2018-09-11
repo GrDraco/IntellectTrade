@@ -1,0 +1,67 @@
+{
+    "name": "Depth_Socket",
+    "exchange": "HitBTC",
+    "provider": "WebSocket",
+    "entity": "Depth",
+    "url": "wss://api.hitbtc.com/api/2/ws",
+    "origin": "http://localhost/",
+    "request_json": {
+        "method": "subscribeOrderbook",
+        "params": {
+            "symbol": ""
+        },
+        "id": 123
+    },
+    "response": {
+        "success": [
+            "params"
+        ],
+        "failed": {
+            "message": [
+                "error",
+                "message"
+            ],
+            "description": [
+                "error",
+                "description"
+            ]
+        },
+        "values": {
+            "asks": {
+                "values_is_array": false,
+                "path": [
+                    "params",
+                    "ask"
+                ],
+                "arr_price": [
+                    "price"
+                ],
+                "arr_amount": [
+                    "size"
+                ]
+            },
+            "bids": {
+                "values_is_array": false,
+                "path": [
+                    "params",
+                    "bid"
+                ],
+                "arr_price": [
+                    "price"
+                ],
+                "arr_amount": [
+                    "size"
+                ]
+            },
+            "symbol": [
+                "params",
+                "symbol"
+            ],
+            "timestamp": [
+                "params",
+                "timestamp"
+            ]
+        }
+    },
+    "regular": true
+}
