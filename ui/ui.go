@@ -24,15 +24,6 @@ func Fill(x, y, w, h int, cell termbox.Cell) {
 }
 
 const (
-    CONSOLE_HELP = "help"
-    CONSOLE_HELP_DISCRIPTION = "Описание комманд"
-    CONSOLE_MESSAGE = "console_message"
-    CONSOLE_MESSAGE_DISCRIPTION = ""
-    CONSOLE_LOG = "log"
-    CONSOLE_LOG_DISCRIPTION = "Онлайн поток работы программы"
-    CONSOLE_CURRENT_CMD = "console_current_cmd"
-    CONSOLE_CURRENT_CMD_DISCRIPTION = ""
-
     MSG_PLACE_NAME = "{name}"
     MSG_CONSOLE_NOT_ACTIVETED = `Нет активной консоли"`
     MSG_CONSOLE_NOT_EXIST = `Консоль "` + MSG_PLACE_NAME + `" не существует`
@@ -102,9 +93,10 @@ type UI struct {
     Consoles map[string]*Console
     Events map[string]func(termbox.Event)
     drawBaseConsole func(*UI)
+    NameConsoleMsg, NameConsoleLog string
 }
 
-func NewUI(console func(*UI)) *UI {
+func NewUI(consoleMsg, consoleLog string, console func(*UI)) *UI {
     ui := UI{}
     ui.drawBaseConsole = console
     ui.chClose = make(chan bool)
@@ -116,10 +108,8 @@ func NewUI(console func(*UI)) *UI {
     ui.Controls = make(map[string]interface{})
     ui.Events = make(map[string]func(termbox.Event))
     ui.Consoles = make(map[string]*Console)
-    ui.AddConsole(NewConsole(CONSOLE_HELP, CONSOLE_HELP_DISCRIPTION, false, nil, nil, nil))
-    ui.AddConsole(NewConsole(CONSOLE_MESSAGE, "", true, nil, nil, nil))
-    ui.AddConsole(NewConsole(CONSOLE_LOG, CONSOLE_LOG_DISCRIPTION, false, nil, nil, nil))
-    ui.AddConsole(NewConsole(CONSOLE_CURRENT_CMD, CONSOLE_CURRENT_CMD_DISCRIPTION, true, nil, nil, nil))
+    ui.NameConsoleMsg = consoleMsg
+    ui.NameConsoleLog = consoleLog
     // Инициализируем пакет по отрисовки консольного интерфейса
     err := termbox.Init()
     if err != nil {
@@ -230,21 +220,21 @@ func (ui *UI) Close() {
 
 func (ui *UI) Error(msg interface{}) {
     if msg != nil {
-        ui.DrawConsole(CONSOLE_MESSAGE, []interface{} { &Text { Value: msg, FG: termbox.ColorRed } })
-        ui.DrawConsole(CONSOLE_LOG, []interface{} { &Text { Value: msg, FG: termbox.ColorRed } })
+        ui.DrawConsole(ui.NameConsoleMsg, []interface{} { &Text { Value: msg, FG: termbox.ColorRed } })
+        ui.DrawConsole(ui.NameConsoleLog, []interface{} { &Text { Value: msg, FG: termbox.ColorRed } })
     }
 }
 
 func (ui *UI) Message(msg interface{}) {
     if msg != nil {
-        ui.DrawConsole(CONSOLE_MESSAGE, []interface{} { &Text { Value: msg, FG: termbox.ColorBlue } })
-        ui.DrawConsole(CONSOLE_LOG, []interface{} { &Text { Value: msg, FG: termbox.ColorBlue } })
+        ui.DrawConsole(ui.NameConsoleMsg, []interface{} { &Text { Value: msg, FG: termbox.ColorBlue } })
+        ui.DrawConsole(ui.NameConsoleLog, []interface{} { &Text { Value: msg, FG: termbox.ColorBlue } })
     }
 }
 
 func (ui *UI) Log(msg interface{}) {
     if msg != nil {
-        ui.DrawConsole(CONSOLE_LOG, []interface{} { &Text { Value: msg, FG: termbox.ColorBlue } })
+        ui.DrawConsole(ui.NameConsoleLog, []interface{} { &Text { Value: msg, FG: termbox.ColorBlue } })
     }
 }
 

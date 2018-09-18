@@ -24,23 +24,23 @@ type ArrayValues struct {
     ArrPrice []string         `json:"arr_price"`
     ArrAmount []string        `json:"arr_amount"`
     ArrVolume []string        `json:"arr_volume"`
-    ArrTimestamp []string     `json:"timestamp"`
-    ArrOpen []string          `json:"open"`
-    ArrClose []string         `json:"close"`
-    ArrMin []string           `json:"min"`
-    ArrMax []string           `json:"max"`
-    ArrVolumeQuote []string   `json:"volumeQuote"`
+    ArrTimestamp []string     `json:"arr_timestamp"`
+    ArrOpen []string          `json:"arr_open"`
+    ArrClose []string         `json:"arr_close"`
+    ArrMin []string           `json:"arr_min"`
+    ArrMax []string           `json:"arr_max"`
+    ArrVolumeQuote []string   `json:"arr_volumeQuote"`
 
     // Позиции значений в масиве
     IndexPrice int64          `json:"index_price"`
     IndexAmount int64         `json:"index_amount"`
     IndexVolume int64         `json:"index_volume"`
-    IndexTimestamp int64      `json:"timestamp"`
-    IndexOpen int64           `json:"open"`
-    IndexClose int64          `json:"close"`
-    IndexMin int64            `json:"min"`
-    IndexMax int64            `json:"max"`
-    IndexVolumeQuote int64    `json:"volumeQuote"`
+    IndexTimestamp int64      `json:"index_timestamp"`
+    IndexOpen int64           `json:"index_open"`
+    IndexClose int64          `json:"index_close"`
+    IndexMin int64            `json:"index_min"`
+    IndexMax int64            `json:"index_max"`
+    IndexVolumeQuote int64    `json:"index_volumeQuote"`
 }
 
 type Values struct {
@@ -75,6 +75,14 @@ type Response struct {
 //     Path []string   `json:"path"`
 // }
 
+const (
+    PERIOD_SECONDS = "s"
+    PERIOD_MINUTES = "m"
+    PERIOD_HOURS = "h"
+    PERIOD_DAY = "d"
+    PERIOD_WEEKLY = "w"
+)
+
 type Manifest struct {
     // Задается пользователем
     Name string             `json:"name"`
@@ -86,6 +94,8 @@ type Manifest struct {
     RequestJSON interface{} `json:"request_json"`
     Response Response       `json:"response"`
     Regular bool            `json:"regular"`
+    Timing float64          `json:"timing"`
+    TimingUnit string       `json:"timing_unit"` //s,m,h,d,w
     // Инициализируется дополнительно
     Id string
     // Каналы для передачи данных
@@ -149,6 +159,28 @@ func (manifest *Manifest) Init() {
     CONNECTION_CONNECTED_TO := strings.Replace(constants.MSG_CONNECTION_CONNECTED_TO, constants.MSG_PLACE_NAME, manifest.Entity, 1)
     CONNECTION_CONNECTED_TO = strings.Replace(CONNECTION_CONNECTED_TO, constants.MSG_PLACE_URL, manifest.URL, 1)
     manifest.Messages["CONNECTION_CONNECTED_TO"] = CONNECTION_CONNECTED_TO
+}
+
+func (manifest *Manifest) IsTiming(started time.Time) bool {
+    if manifest.TimingUnit == "" {
+        return true
+    }
+    if manifest.Timing == 0 {
+        return true
+    }
+    switch manifest.TimingUnit {
+    case PERIOD_SECONDS:
+        return time.Now().Sub(started).Seconds() >= manifest.Timing
+    case PERIOD_MINUTES:
+        return time.Now().Sub(started).Minutes() >= manifest.Timing
+    case PERIOD_HOURS:
+        return time.Now().Sub(started).Hours() >= manifest.Timing
+    case PERIOD_DAY:
+        return time.Now().Sub(started).Hours() >= manifest.Timing * 24
+    case PERIOD_WEEKLY:
+        return time.Now().Sub(started).Hours() >= manifest.Timing * 24 * 7
+    default: return true
+    }
 }
 
 // Инициализируем функцию приведения данных к общему виду
@@ -316,8 +348,7 @@ func (manifest *Manifest) ConvertToCandle() error  {
         Exchange: manifest.Exchange,
         Entity: constants.ENTITY_CANDLE,
         Symbol: utilities.ToString(utilities.SearchValue(manifest.RequestJSON, "symbol")),
-        TimeRecd: time.Now(),
-        TimeOut: false }
+        TimeRecd: time.Now() }
     candles := make([]*core.Candle, 0)
     var arr interface{}
     if len(manifest.Response.Values.Candles.Path) > 0 {
@@ -349,6 +380,14 @@ func (manifest *Manifest) ConvertToCandle() error  {
         }
     }
     signal.Data = candles
+    ///////
+    if manifest.Provider == constants.CONNECTION_API {
+        if signal.Ping > manifest.TimeoutSignal {
+            signal.TimeOut = true
+        } else {
+            signal.TimeOut = false
+        }
+    }
     manifest.ChSignal<-signal
     return nil
 }

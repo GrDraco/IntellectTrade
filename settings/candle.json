@@ -1,1 +1,1 @@
-{"name":"candle","is_default":false,"params_exchanges":{"hitbtc":{"candle":{"symbol":"ethbtc"}}},"started_exchanges":{},"started_strategies":{}}
+{"name":"candle","is_default":true,"params_exchanges":{"hitbtc":{"candle":{"symbol":"ethbtc"}}},"started_exchanges":{"hitbtc":{"candle":true}},"started_strategies":{}}

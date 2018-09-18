@@ -95,6 +95,8 @@ func (connection *BaseConnection) activate(manifest *Manifest) bool {
     // Запускаем горутину
     finishActivate := false
     go func() {
+        var started time.Time
+        first := true
         for {
             // fmt.Println("connection.status", connection.status)
             select {
@@ -119,23 +121,29 @@ func (connection *BaseConnection) activate(manifest *Manifest) bool {
                 }
                 // Если флаг в состоянии работает то выполняем метод отправки
                 if connection.fWorking {
-                    // Когда производится инициализация send надо в нем происать вызов метода api.manifest.Convertation()
-                    time_0 := time.Now();
-                    if err := connection.send(); err != nil {
-                        connection.fWorking = false
-                        connection.fSuccessStart = false
-                        connection.createError(err.Error())
-                    } else {
-                        connection.manifest.Response.Ping = time.Now().Sub(time_0).Nanoseconds()/1000000
-                        if connection.fSuccessStart {
-                            connection.status = STATUS_STARTED
+                    if first || connection.manifest.IsTiming(started) {
+                        // Когда производится инициализация send надо в нем происать вызов метода api.manifest.Convertation()
+                        started = time.Now()
+                        if err := connection.send(); err != nil {
+                            // В случае ошибки все останавливаем
+                            connection.fWorking = false
                             connection.fSuccessStart = false
-                            connection.fSuccessStop = true
-                            connection.createLog(connection.manifest.Messages["CONNECTION_STARTED"])
-                        }
+                            connection.createError(err.Error())
+                            } else {
+                                connection.manifest.Response.Ping = time.Now().Sub(started).Nanoseconds()/1000000
+                                if connection.fSuccessStart {
+                                    // Выполняется единоразово после старта
+                                    connection.status = STATUS_STARTED
+                                    first = false
+                                    connection.fSuccessStart = false
+                                    connection.fSuccessStop = true
+                                    connection.createLog(connection.manifest.Messages["CONNECTION_STARTED"])
+                                }
+                            }
                     }
                 } else {
                     if connection.fSuccessStop {
+                        // Выполняется единоразово после стопа
                         connection.status = STATUS_STOPED
                         connection.fSuccessStart = true
                         connection.fSuccessStop = false

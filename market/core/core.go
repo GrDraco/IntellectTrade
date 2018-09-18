@@ -1,6 +1,7 @@
 package core
 
 import (
+    // "fmt"
     "strconv"
     "time"
     "github.com/satori/go.uuid"
@@ -168,8 +169,8 @@ func (signal *Signal) TickStr(showSpeeds bool) string {
     }
     if showSpeeds {
         return "(SIGNAL) " + signal.Exchange + "." + signal.Entity + ": " +
-               "Speed = " + strconv.FormatInt(signal.Speed/1000, 10) +
-               "µs Ping = " + strconv.FormatInt(signal.Ping, 10) +
+               // "Speed = " + strconv.FormatInt(signal.Speed/1000, 10) +
+               "Ping = " + strconv.FormatInt(signal.Ping, 10) +
                "ms TimeOut = " + strconv.FormatBool(signal.TimeOut) +
                " Symbol = " + signal.Symbol +
                " Bid = " + utilities.FloatToString(signal.Tick().Bid, 8) +
@@ -243,13 +244,8 @@ func (signal *Signal) CandlesStr(showSpeeds bool) string {
         return ""
     }
     candleStr := ""
-    i := 0
     for _, candle := range signal.Candles() {
         candleStr += utilities.FloatToString(candle.Open, 8) + "(" + utilities.FloatToString(candle.Volume, 8) + ") "
-        i++
-        if i == 2 {
-            break
-        }
     }
     if showSpeeds {
         return "(SIGNAL) " + signal.Exchange + "." + signal.Entity + ": " +

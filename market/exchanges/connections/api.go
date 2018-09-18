@@ -33,15 +33,14 @@ func NewApi(manifest *Manifest) *Api {
         if len(values) > 0 {
             url = url + "?"
         }
-        manifest.ChMsg<- url
         for key, value := range values {
             place := "{" + key + "}"
             if i, _ := utilities.SearchIndex(url, place); i > -1 {
-                strings.Replace(url, place, value, -1)
+                url = strings.Replace(url, place, value, -1)
+            } else {
+                url = url + key + "=" + value + "&"
             }
-            url = url + key + "=" + value
         }
-        manifest.ChMsg<- url
         // Формируем запрос
         api.request, api.err = http.NewRequest("GET", url, nil)
         if api.err != nil {

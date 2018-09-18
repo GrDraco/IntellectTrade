@@ -93,7 +93,7 @@ const (
     CMD_SETTINGS_PARAM_LOAD = "load"
     CMD_SETTINGS_PARAM_LOAD_DISCRIPTION = "Параметр загргузка все параметров приложения из указанного имени настроек"
     CMD_SETTINGS_PARAM_LOAD_EXAMPLE = SETTINGS_TEXT_START_CMD + TEXT_SEPARATOR_CMD_PARAM + CMD_SETTINGS_PARAM_LOAD +
-                                      TEXT_SEPARATOR_CMD_PARAM + "название_файла_настроек"
+                                      TEXT_SEPARATOR_CMD_PARAM_VALUE + "название_файла_настроек"
     CMD_SETTINGS_PARAM_LOAD_ISFLAG = false
     CMD_SETTINGS_PARAM_LOAD_ALLOWED_EMPTY = false
     //
@@ -101,7 +101,7 @@ const (
     CMD_SETTINGS_PARAM_SAVE = "save"
     CMD_SETTINGS_PARAM_SAVE_DISCRIPTION = "Параметр сохранения всех параметров приложения в указанный файл настроек"
     CMD_SETTINGS_PARAM_SAVE_EXAMPLE = SETTINGS_TEXT_START_CMD + TEXT_SEPARATOR_CMD_PARAM + CMD_SETTINGS_PARAM_SAVE +
-                                      TEXT_SEPARATOR_CMD_PARAM + "название_файла_настроек"
+                                      TEXT_SEPARATOR_CMD_PARAM_VALUE + "название_файла_настроек"
     CMD_SETTINGS_PARAM_SAVE_ISFLAG = false
     CMD_SETTINGS_PARAM_SAVE_ALLOWED_EMPTY = true
     //

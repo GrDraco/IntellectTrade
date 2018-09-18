@@ -3,7 +3,7 @@ package utilities
 import (
     "reflect"
     "strings"
-    //"fmt"
+    // "fmt"
 )
 
 func AppendMap(to map[string]string, from map[string]string) map[string]string {
@@ -82,10 +82,17 @@ func GetValue(data interface{}, fieldsName []string) interface{} {
     if len(fieldsName) == 0 {
         return nil
     }
-    if len(fieldsName) > 1 {
-        return GetValue(data.(map[string]interface{})[fieldsName[0]], fieldsName[1:])
+    if reflect.TypeOf(data).Kind() == reflect.Slice {
+        for _, d := range data.([]interface{}) {
+            return GetValue(d, fieldsName)
+        }
+    } else {
+        if len(fieldsName) > 1 {
+            return GetValue(data.(map[string]interface{})[fieldsName[0]], fieldsName[1:])
+        }
+        return data.(map[string]interface{})[fieldsName[0]]
     }
-    return data.(map[string]interface{})[fieldsName[0]]
+    return nil
 }
 
 func ArrayToString(array []interface{}) string {
