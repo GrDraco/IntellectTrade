@@ -119,7 +119,6 @@ type Candle struct {
     VolumeQuote float64 // ????
     Timestamp string    // Время
 }
-
 // Тик
 type Tick struct {
     Ask float64         // Цена ask - запрос
@@ -127,13 +126,22 @@ type Tick struct {
     Volume float64      // Объем
     Timestamp string    // Время
 }
-
 // Стакан
 type Depth struct {
     Asks map[float64]*Order   // Ордер на покупку
     Bids map[float64]*Order   // Ордер на продажу
 }
-
+//
+func GetOrderByIndex(prices map[float64]*Order, index int) *Order {
+    i := 0
+    for _, order := range prices {
+        if i == index {
+            return order
+        }
+        i++
+    }
+    return nil
+}
 // Данные для торговли
 type Signal struct {
     Ping int64          // Время запроса, характерно для API в милисекундах
@@ -141,7 +149,6 @@ type Signal struct {
     Exchange string     // От какой биржы пришли данные
     Entity string       // Передеаваемая сущьность в свойстве Data
     Symbol string       // Торговая пара
-    // Error *Message      // Сообщение об ишибке
     Data interface {}   // Полученные данные от биржы
     TimeRecd time.Time  // Время формирования сигнала
     TimeOut bool        // Превышено ли время допустимого ожидания

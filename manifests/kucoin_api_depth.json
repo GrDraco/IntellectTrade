@@ -6,7 +6,8 @@
     "url": "https://api.kucoin.com/v1/open/orders",
     "origin": "",
     "request_json": {
-        "symbol": ""
+        "symbol": "",
+        "limit": "10"
     },
     "response": {
         "success": [

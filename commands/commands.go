@@ -111,4 +111,45 @@ const (
     CMD_SETTINGS_PARAM_DEFAULT_EXAMPLE = SETTINGS_TEXT_START_CMD + TEXT_SEPARATOR_CMD_PARAM + CMD_SETTINGS_PARAM_DEFAULT
     CMD_SETTINGS_PARAM_DEFAULT_ISFLAG = true
     CMD_SETTINGS_PARAM_DEFAULT_ALLOWED_EMPTY = false
+
+    // CMD strategy
+    CMD_STRATEGY = "strategy"
+    STRATEGY_TEXT_START_CMD = CMD_STRATEGY + TEXT_SEPARATOR_CMD
+    CMD_STRATEGY_DISCRIPTION = "Команда управления настройками стратегии"
+    CMD_STRATEGY_PARAMS_REQUIRED = true
+    CMD_STRATEGY_DEFAULT_PARAM = ""
+    // PARAMS strategy
+    // EXAMPLE strategy --name:название_стратегии --param:название_свойства --value:значение_свойства
+    CMD_STRATEGY_PARAM_NAME = "name"
+    CMD_STRATEGY_PARAM_NAME_DISCRIPTION = "Параметр для указания имени стратегии по отношению к которой будут применены параметры"
+    CMD_STRATEGY_PARAM_NAME_EXAMPLE = STRATEGY_TEXT_START_CMD + TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_NAME + TEXT_SEPARATOR_CMD_PARAM_VALUE + "название_стратегии " +
+                                      TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_PARAM + TEXT_SEPARATOR_CMD_PARAM_VALUE + "название_свойства " +
+                                      TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_VALUE + TEXT_SEPARATOR_CMD_PARAM_VALUE + "значение_свойства"
+    CMD_STRATEGY_PARAM_NAME_ISFLAG = false
+    CMD_STRATEGY_PARAM_NAME_ALLOWED_EMPTY = false
+    // EXAMPLE strategy --name:название_стратегии --param:название_свойства --value:значение_свойства
+    CMD_STRATEGY_PARAM_PARAM = "param"
+    CMD_STRATEGY_PARAM_PARAM_DISCRIPTION = "Параметр указания названия свойства стратегии к которой необходимо установить значение"
+    CMD_STRATEGY_PARAM_PARAM_EXAMPLE = STRATEGY_TEXT_START_CMD + TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_NAME + TEXT_SEPARATOR_CMD_PARAM_VALUE + "название_стратегии " +
+                                       TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_PARAM + TEXT_SEPARATOR_CMD_PARAM_VALUE + "название_свойства " +
+                                       TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_VALUE + TEXT_SEPARATOR_CMD_PARAM_VALUE + "значение_свойства"
+    CMD_STRATEGY_PARAM_PARAM_ISFLAG = false
+    CMD_STRATEGY_PARAM_PARAM_ALLOWED_EMPTY = false
+    //
+    // EXAMPLE strategy --name:название_стратегии --param:название_свойства --value:значение_свойства
+    CMD_STRATEGY_PARAM_VALUE = "value"
+    CMD_STRATEGY_PARAM_VALUE_DISCRIPTION = "Параметр для указания значения свойства стратегии"
+    CMD_STRATEGY_PARAM_VALUE_EXAMPLE = STRATEGY_TEXT_START_CMD + TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_NAME + TEXT_SEPARATOR_CMD_PARAM_VALUE + "название_стратегии " +
+                                       TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_PARAM + TEXT_SEPARATOR_CMD_PARAM_VALUE + "название_свойства " +
+                                       TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_VALUE + TEXT_SEPARATOR_CMD_PARAM_VALUE + "значение_свойства"
+    CMD_STRATEGY_PARAM_VALUE_ISFLAG = false
+    CMD_STRATEGY_PARAM_VALUE_ALLOWED_EMPTY = false
+    //
+    // EXAMPLE strategy --name:название_стратегии --on
+    CMD_STRATEGY_PARAM_ON = "on"
+    CMD_STRATEGY_PARAM_ON_DISCRIPTION = "Параметр запуска или остановки работы стратегии."
+    CMD_STRATEGY_PARAM_ON_EXAMPLE = STRATEGY_TEXT_START_CMD + TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_NAME + TEXT_SEPARATOR_CMD_PARAM_VALUE + "название_стратегии " +
+                                    TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_ON
+    CMD_STRATEGY_PARAM_ON_ISFLAG = true
+    CMD_STRATEGY_PARAM_ON_ALLOWED_EMPTY = false
 )

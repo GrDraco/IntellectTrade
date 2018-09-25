@@ -17,15 +17,13 @@ const (
     coldef = termbox.ColorDefault
 
     EVENT_MAIN_KEYS = "main_keys"
+
+    PARAM_MAIN_CONSOLE = "main_console"
 )
 
 //////////////////////////////////////////////////////////////////////////////
 var frame *packUI.UI
 var settings *packUI.Settings
-var settings2 *packUI.Settings
-//
-
-
 //////////////////////////////////////////////////////////////////////////////
 
 // Функция обработки нажатия кнопок
@@ -45,8 +43,10 @@ func cmdConsoleExecute(command *packUI.Command) bool {
     if run != "" {
         if run == commands.CMD_HELP {
             frame.SetMainConsole(views.CONSOLE_HELP)
+            settings.ParamsMain[PARAM_MAIN_CONSOLE] = views.CONSOLE_HELP
         } else {
             frame.SetMainConsole(run)
+            settings.ParamsMain[PARAM_MAIN_CONSOLE] = run
         }
         frame.RedrawAll()
         return true
@@ -155,6 +155,32 @@ func cmdSettingsExecute(command *packUI.Command) bool {
     frame.Consoles[views.CONSOLE_INDICATORS].Execute(nil)
     frame.Consoles[views.CONSOLE_INDICATORS].Redraw()
     return true
+}
+// Функция обработки исполнения команды strategy
+func cmdStrategyExecute(command *packUI.Command) bool {
+    name := command.Params[commands.CMD_STRATEGY_PARAM_NAME].Value
+    // param := command.Params[commands.CMD_STRATEGY_PARAM_PARAM].Value
+    // value := command.Params[commands.CMD_STRATEGY_PARAM_VALUE].Value
+    on := command.Params[commands.CMD_STRATEGY_PARAM_ON].Value
+    terminal := frame.Controls["terminal"].(*market.Terminal)
+    if on != "" && name != "" {
+        strategy := terminal.Strategies[name]
+        if strategy != nil {
+            strategy.Turn()
+            // Сохраняем в настройках
+            for property, value := range strategy.GetProperties() {
+                if !strategy.GetKeysForSave()[property] {
+                    continue
+                }
+                if settings.ParamsStartegies[name] == nil {
+                    settings.ParamsStartegies[name] = make(map[string]interface{})
+                }
+                settings.ParamsStartegies[name][property] = value
+            }
+            return true
+        }
+    }
+    return false
 }
 // Функция обработки события нового сигнала
 func eventNewSignal(event string, params []interface{}, callback func(string)) {
@@ -299,9 +325,32 @@ func main() {
         commands.CMD_SETTINGS_PARAMS_REQUIRED,
         commands.CMD_SETTINGS_DEFAULT_PARAM,
         cmdSettingsExecute)
+    // Комманда "strategy"
+    frame.Controls[views.CONTROL_COMMANDS].(map[string]*packUI.Command)[commands.CMD_STRATEGY] = packUI.NewCommand(
+        commands.CMD_STRATEGY, commands.CMD_STRATEGY_DISCRIPTION,
+        []*packUI.Param {
+            packUI.NewParam(commands.CMD_STRATEGY_PARAM_NAME, commands.CMD_STRATEGY_PARAM_NAME_DISCRIPTION,
+                     commands.CMD_STRATEGY_PARAM_NAME_EXAMPLE, commands.CMD_STRATEGY_PARAM_NAME_ISFLAG,
+                     commands.CMD_STRATEGY_PARAM_NAME_ALLOWED_EMPTY),
+            packUI.NewParam(commands.CMD_STRATEGY_PARAM_PARAM, commands.CMD_STRATEGY_PARAM_PARAM_DISCRIPTION,
+                     commands.CMD_STRATEGY_PARAM_PARAM_EXAMPLE, commands.CMD_STRATEGY_PARAM_PARAM_ISFLAG,
+                     commands.CMD_STRATEGY_PARAM_PARAM_ALLOWED_EMPTY),
+            packUI.NewParam(commands.CMD_STRATEGY_PARAM_VALUE, commands.CMD_STRATEGY_PARAM_VALUE_DISCRIPTION,
+                     commands.CMD_STRATEGY_PARAM_VALUE_EXAMPLE, commands.CMD_STRATEGY_PARAM_VALUE_ISFLAG,
+                     commands.CMD_STRATEGY_PARAM_VALUE_ALLOWED_EMPTY),
+            packUI.NewParam(commands.CMD_STRATEGY_PARAM_ON, commands.CMD_STRATEGY_PARAM_ON_DISCRIPTION,
+                     commands.CMD_STRATEGY_PARAM_ON_EXAMPLE, commands.CMD_STRATEGY_PARAM_ON_ISFLAG,
+                     commands.CMD_STRATEGY_PARAM_ON_ALLOWED_EMPTY)},
+        commands.CMD_STRATEGY_PARAMS_REQUIRED,
+        commands.CMD_STRATEGY_DEFAULT_PARAM,
+        cmdStrategyExecute)
 	//-------------------------------------------------------------------------
 	// Устанавливаем текущую консоль
-	frame.SetMainConsole(views.CONSOLE_LOG)
+    if settings.ParamsMain[PARAM_MAIN_CONSOLE] == "" {
+    	frame.SetMainConsole(views.CONSOLE_LOG)
+    } else {
+        frame.SetMainConsole(settings.ParamsMain[PARAM_MAIN_CONSOLE])
+    }
     frame.RedrawAll()
     // Проверяем ошибки загрузки настроеек
     if err != nil {
@@ -342,10 +391,6 @@ func main() {
 	}
 }
 //////////////////////////////////////////////////////////////////////////////
-
-
-
-
 
 // ui.Indicators["Прибыль за день"] = "100"
 // ui.Indicators["Активных бирж"] = "4"

@@ -19,29 +19,34 @@ const (
 type Settings struct {
     Name string                                             `json:"name"`
     IsDefault bool                                          `json:"is_default"`
+    ParamsMain map[string]string                            `json:"params_main"`
     ParamsExchanges map[string]map[string]map[string]string `json:"params_exchanges"`
     StartedExchanges map[string]map[string]bool             `json:"started_exchanges"`
-    StartedStartegies map[string]bool                       `json:"started_strategies"`
+    ParamsStartegies map[string]map[string]interface{}      `json:"params_strategies"`
 }
 // Функция создания нового объекта настроеек
 func NewSettings(name string) *Settings {
     settings := new(Settings)
     settings.Name = name
     settings.IsDefault = false
+    settings.ParamsMain = make(map[string]string)
     settings.ParamsExchanges = make(map[string]map[string]map[string]string)
     settings.StartedExchanges = make(map[string]map[string]bool)
-    settings.StartedStartegies = make(map[string]bool)
+    settings.ParamsStartegies = make(map[string]map[string]interface{})
     return settings
 }
 func (settings *Settings) Init() {
+    if settings.ParamsMain == nil {
+        settings.ParamsMain = make(map[string]string)
+    }
     if settings.ParamsExchanges == nil {
         settings.ParamsExchanges = make(map[string]map[string]map[string]string)
     }
     if settings.StartedExchanges == nil {
         settings.StartedExchanges = make(map[string]map[string]bool)
     }
-    if settings.StartedStartegies == nil {
-        settings.StartedStartegies = make(map[string]bool)
+    if settings.ParamsStartegies == nil {
+        settings.ParamsStartegies = make(map[string]map[string]interface{})
     }
 }
 
@@ -53,9 +58,10 @@ func (settings *Settings) LoadFrom(name string) error {
     newSettings, err := ReadSettings(PATH_SETTINGS + name + ".json")
     settings.Name = newSettings.Name
     settings.IsDefault = newSettings.IsDefault
+    settings.ParamsMain = newSettings.ParamsMain
     settings.ParamsExchanges = newSettings.ParamsExchanges
     settings.StartedExchanges = newSettings.StartedExchanges
-    settings.StartedStartegies = newSettings.StartedStartegies
+    settings.ParamsStartegies = newSettings.ParamsStartegies
     if err != nil {
         return err
     }
@@ -103,8 +109,7 @@ func (settings *Settings) Apply(terminal *market.Terminal) bool {
                     for param, value := range properties {
                         params[param] = value
                     }
-                    res := exchange.SetValues(entity, params)
-                    if !res {
+                    if !exchange.SetValues(entity, params) {
                         return false
                     }
                 }
@@ -126,6 +131,18 @@ func (settings *Settings) Apply(terminal *market.Terminal) bool {
         }
     }
     // Запускаем стратегии согласно настроек
+    for setStartegy, entities := range settings.ParamsStartegies {
+        startegy := terminal.Strategies[setStartegy]
+        if startegy != nil {
+            for property, value := range entities {
+                if value != nil {
+                    if !startegy.SetProperty(property, value) {
+                        return false
+                    }
+                }
+            }
+        }
+    }
     return true
 }
 //

@@ -249,7 +249,7 @@ func (manifest *Manifest) ConvertToTick() error {
         Connection: manifest.Name,
         Exchange: manifest.Exchange,
         Entity: constants.ENTITY_TICK,
-        Symbol: utilities.ToString(utilities.GetValue(manifest.Response.JSON, manifest.Response.Values.Symbol)),
+        Symbol: clearSymbol(utilities.ToString(utilities.GetValue(manifest.Response.JSON, manifest.Response.Values.Symbol))),
         TimeRecd: time.Now() }
     signal.Data = &core.Tick {
         Ask: utilities.ToFloat(utilities.GetValue(manifest.Response.JSON, manifest.Response.Values.Ask)),
@@ -277,7 +277,7 @@ func (manifest *Manifest) ConvertToDepth() error {
         Connection: manifest.Name,
         Exchange: manifest.Exchange,
         Entity: constants.ENTITY_DEPTH,
-        Symbol: utilities.ToString(utilities.SearchValue(manifest.RequestJSON, "symbol")),
+        Symbol: clearSymbol(utilities.ToString(utilities.SearchValue(manifest.RequestJSON, "symbol"))),
         TimeRecd: time.Now() }
     depth := new(core.Depth)
     depth.Asks = make(map[float64]*core.Order)
@@ -347,7 +347,7 @@ func (manifest *Manifest) ConvertToCandle() error  {
         Connection: manifest.Name,
         Exchange: manifest.Exchange,
         Entity: constants.ENTITY_CANDLE,
-        Symbol: utilities.ToString(utilities.SearchValue(manifest.RequestJSON, "symbol")),
+        Symbol: clearSymbol(utilities.ToString(utilities.SearchValue(manifest.RequestJSON, "symbol"))),
         TimeRecd: time.Now() }
     candles := make([]*core.Candle, 0)
     var arr interface{}
@@ -390,6 +390,10 @@ func (manifest *Manifest) ConvertToCandle() error  {
     }
     manifest.ChSignal<-signal
     return nil
+}
+
+func clearSymbol(symbol string) string {
+    return strings.Replace(symbol, "-", "", -1)
 }
 
 func GetManifestPaths() (paths map[string]string, err error) {

@@ -3,6 +3,8 @@ package views
 import (
     "sort"
     "strconv"
+
+    "./borders"
     "../market"
     "../utilities"
     packUI "../ui"
@@ -33,30 +35,15 @@ func indicatorsDraw(console *packUI.Console, bodyX, bodyY int) {
             keysIndicator = append(keysIndicator, key)
         }
         sort.Strings(keysIndicator)
-        colForm := termbox.ColorCyan
+        // Рисуем стенки формы
+        borders.GroupBoxDraw(keysGroup[i], 3, bodyY - len(keysIndicator) - k, bodyX - 4, len(keysIndicator), -1 , termbox.ColorCyan)
+        // colForm := termbox.ColorCyan
         for j:=len(keysIndicator) - 1; j >= 0; j-- {
-            termbox.SetCell(3, bodyY - k - 1, '│', colForm, coldef)
-            termbox.SetCell(3, bodyY - k - 2, '│', colForm, coldef)
-            termbox.SetCell(bodyX - 1, bodyY - k - 1, '│', colForm, coldef)
-            termbox.SetCell(bodyX - 1, bodyY - k - 2, '│', colForm, coldef)
-            if j == len(keysIndicator) - 1 {
-                termbox.SetCell(3, bodyY - k, '└', colForm, coldef)
-                termbox.SetCell(bodyX - 1, bodyY - k, '┘', colForm, coldef)
-            } else {
-                termbox.SetCell(3, bodyY - k, '├', colForm, coldef)
-                termbox.SetCell(bodyX - 1, bodyY - k, '┤', colForm, coldef)
-            }
-            packUI.Fill(5, bodyY - k, bodyX - 7, 1, termbox.Cell{Ch: '╌', Fg: colForm})
             packUI.Tprint(5, bodyY - k, coldef, coldef, keysIndicator[j] + " ")
             packUI.Tprint(bodyX - len([]rune(indicators[keysGroup[i]][keysIndicator[j]])) - 3, bodyY - k, coldef, coldef, " " + indicators[keysGroup[i]][keysIndicator[j]])
             k++
         }
         k++
-        packUI.Fill(3, bodyY - k, bodyX - 3, 1, termbox.Cell{Ch: '─', Fg: colForm})
-        groupTitle := "┤" + keysGroup[i] + "├"
-        packUI.Tprint(4, bodyY - k, colForm, coldef, groupTitle)
-        termbox.SetCell(3, bodyY - k, '┌', colForm, coldef)
-        termbox.SetCell(bodyX - 1, bodyY - k, '┐', colForm, coldef)
         k = k + 2
     }
 }

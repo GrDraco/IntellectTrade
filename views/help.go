@@ -38,7 +38,7 @@ func helpDraw(console *packUI.Console, bodyX, bodyY int) {
                 packUI.Tprint(indent + len([]rune(param.Name)) + 4, 9 + line, coldef, coldef, "флаг: " + strconv.FormatBool(param.IsFlag))
                 packUI.Tprint(indent + len([]rune(param.Name)) + 4, 10 + line, coldef, coldef, "может быть пустым: " + strconv.FormatBool(param.AllowedEmpty))
                 packUI.Tprint(indent + len([]rune(param.Name)) + 4, 11 + line, coldef, coldef, "пример: " + param.Example)
-                line = line + 4
+                line = line + 5
             }
             if command.Name == commands.CMD_CONSOLE {
                 titleCon := "Перечень консолей: "

@@ -113,9 +113,12 @@ func NewTerminal(chMsg, chErr chan interface{}) (terminal *Terminal, err error) 
 func (terminal *Terminal) calculateActiveExchanges() {
     var count int64
     count = 0
-    for _, exchanges := range terminal.Exchanges {
+    for name, exchanges := range terminal.Exchanges {
         if exchanges.CountActiveConnection() > 0 {
+            terminal.SetIndicator(name, "active")
             count++
+        } else {
+            terminal.SetIndicator(name, "inactive")
         }
     }
     terminal.SetIndicator(constants.INDICATOR_ACTIVE_EXCHANGES_COUNT, strconv.FormatInt(count, 10))
