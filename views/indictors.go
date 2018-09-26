@@ -74,6 +74,11 @@ func indicatorsAction(console *packUI.Console, data []interface{}) {
         indicators[exchange.Name] = make(map[string]string)
         indicators[exchange.Name] = utilities.AppendMap(indicators[exchange.Name], exchange.GetIndicators())
     }
+    // Записываем индикаторы по стратегиям
+    for _, strategy := range terminal.(*market.Terminal).Strategies {
+        indicators[strategy.GetName()] = make(map[string]string)
+        indicators[strategy.GetName()] = utilities.AppendMap(indicators[strategy.GetName()], strategy.GetIndicators())
+    }
     console.Controls[CONTROL_INDICATORS] = indicators
 }
 

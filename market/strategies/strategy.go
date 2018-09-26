@@ -1,7 +1,10 @@
 package strategies
 
 import (
+    "strconv"
+    
     "../../market/core"
+    "../../utilities"
 )
 
 type IStrategy interface {
@@ -9,6 +12,7 @@ type IStrategy interface {
     InitChans(chAction chan *core.StrategyAction, chMsg, chErr chan interface{})
     CalculateAction(signal *core.Signal) bool
     GetName() string
+    GetIndicators() map[string]string
     GetProperties() map[string]interface{}
     GetKeysForSave() map[string]bool
     GetProperty(name string) interface{}
@@ -35,6 +39,7 @@ type BaseStrategy struct {
     // Свойства
     Properties map[string]interface{}
     KeysForSave map[string]bool
+    Indicators utilities.Collection
     // Каналы
     chAction chan *core.StrategyAction
     chMsg, chErr chan interface{}
@@ -89,6 +94,7 @@ func (strategy *BaseStrategy) init(name string) {
     // Инициализируем коллекции
     strategy.Properties = make(map[string]interface{})
     strategy.KeysForSave = make(map[string]bool)
+    strategy.Indicators = utilities.Collection { Name: "Indicators" }
     // Запоминаем ключи по которым можно сохранять параметры
     // все те которые не входят в данную коллекцию не будут сохранятся в параметрах программы
     strategy.KeysForSave[PROPERTY_NAME] = true
@@ -136,6 +142,10 @@ func (strategy *BaseStrategy) GetName() string {
     return ""
 }
 
+func (strategy *BaseStrategy) GetIndicators() map[string]string {
+    return strategy.Indicators.Storage
+}
+
 func (strategy *BaseStrategy) GetProperties() map[string]interface{} {
     return strategy.Properties
 }
@@ -153,6 +163,10 @@ func (strategy *BaseStrategy) SetProperty(name string, value interface{}) bool {
         strategy.Properties = make(map[string]interface{})
     }
     strategy.Properties[name] = value
+    // Выставляем индикаторы
+    if name == PROPERTY_STARTED {
+        strategy.Indicators.SetValue(PROPERTY_STARTED, strconv.FormatBool(value.(bool)))
+    }
     return true
 }
 
