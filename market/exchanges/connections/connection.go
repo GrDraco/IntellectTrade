@@ -216,6 +216,9 @@ func (connection *BaseConnection) SetValues(values interface{}) bool {
 func (connection *BaseConnection) Start() bool {
     // connection.createLog(connection.status)
     time.Sleep(time.Duration(1)*time.Second)
+    if connection.status == STATUS_STARTED {
+        return true
+    }
     // Проверяем разрешенность старта
     if connection.status != STATUS_ACTIVATED &&
        connection.status != STATUS_STOPED {
@@ -241,6 +244,10 @@ func (connection *BaseConnection) Start() bool {
 
 func (connection *BaseConnection) Stop() bool {
     // Проверяем разрешенность стопа
+    if connection.status == STATUS_STOPED ||
+       connection.status == STATUS_ACTIVATED {
+        return true
+    }
     if connection.status != STATUS_STARTED {
         return false
     }

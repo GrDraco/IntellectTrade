@@ -86,7 +86,7 @@ func (exchange *Exchange) CountActiveConnection() (count int64) {
     return
 }
 
-func (exchange *Exchange) Turn(entity string) (status, success bool) {
+func (exchange *Exchange) Turn(entity string, start bool) (status, success bool) {
     status = false
     entity = strings.ToLower(entity)
     if entity == "" {
@@ -101,8 +101,7 @@ func (exchange *Exchange) Turn(entity string) (status, success bool) {
         return
     }
     // exchange.msg(core.NewMessage("connection.GetStatus()", connection.GetStatus(), ""))
-    if connection.GetStatus() == connections.STATUS_ACTIVATED ||
-       connection.GetStatus() == connections.STATUS_STOPED {
+    if start {
         if connection.Start() {
             exchange.On(constants.EVENT_STARTED, nil, nil)
             exchange.SetIndicator(connection.GetName(), connection.GetStatus())
@@ -111,7 +110,7 @@ func (exchange *Exchange) Turn(entity string) (status, success bool) {
             return
         }
     }
-    if connection.GetStatus() == connections.STATUS_STARTED {
+    if !start {
         if connection.Stop() {
             exchange.On(constants.EVENT_STOPED, nil, nil)
             exchange.SetIndicator(connection.GetName(), connection.GetStatus())

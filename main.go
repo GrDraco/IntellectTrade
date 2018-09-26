@@ -19,6 +19,8 @@ const (
     EVENT_MAIN_KEYS = "main_keys"
 
     PARAM_MAIN_CONSOLE = "main_console"
+
+    MSG_SETTINGS_ERROR_APPLY = "Не удалось применить настройки, что-то пошло не так."
 )
 
 //////////////////////////////////////////////////////////////////////////////
@@ -64,15 +66,23 @@ func cmdHelpExecute(command *packUI.Command) bool {
 // Функция обратоки исполнения команды terminal
 func cmdTerminalExecute(command *packUI.Command) bool {
     on := command.Params[commands.CMD_TERMINAL_PARAM_ON].Value
+    off := command.Params[commands.CMD_TERMINAL_PARAM_OFF].Value
     name := command.Params[commands.CMD_TERMINAL_PARAM_NAME].Value
     entity := command.Params[commands.CMD_TERMINAL_PARAM_ENTITY].Value
     symbol := command.Params[commands.CMD_TERMINAL_PARAM_SYMBOL].Value
     terminal := command.Controls["terminal"].(*market.Terminal)
     // frame.Log("on " + on + " name " + name + " entity " + entity + " symbol " + symbol)
-    if on != "" && name != "" && entity != "" {
+    if (on != "" || off != "") && name != "" && entity != "" {
+        var start bool
+        if on != "" {
+            start = true
+        }
+        if off != "" {
+            start = false
+        }
         exchange := terminal.Exchanges[name]
         if exchange != nil {
-            if status, success := exchange.Turn(entity); success {
+            if status, success := exchange.Turn(entity, start); success {
                 // Сохраняем в настройках
                 if settings.StartedExchanges[name] == nil {
                     settings.StartedExchanges[name] = make(map[string]bool)
@@ -105,6 +115,7 @@ func cmdSettingsExecute(command *packUI.Command) bool {
     load := command.Params[commands.CMD_SETTINGS_PARAM_LOAD].Value
     save := command.Params[commands.CMD_SETTINGS_PARAM_SAVE].Value
     def := command.Params[commands.CMD_SETTINGS_PARAM_DEFAULT].Value
+    apply := command.Params[commands.CMD_SETTINGS_PARAM_APPLY].Value
     terminal := frame.Controls["terminal"].(*market.Terminal)
     if load != "" {
         err := settings.LoadFrom(load)
@@ -150,6 +161,12 @@ func cmdSettingsExecute(command *packUI.Command) bool {
                 frame.Error(err.Error())
                 return false
             }
+        }
+    }
+    if apply != "" {
+        if !settings.Apply(terminal) {
+            frame.Error(MSG_SETTINGS_ERROR_APPLY)
+            return false
         }
     }
     frame.Consoles[views.CONSOLE_INDICATORS].Execute(nil)
@@ -297,6 +314,9 @@ func main() {
             packUI.NewParam(commands.CMD_TERMINAL_PARAM_ON, commands.CMD_TERMINAL_PARAM_ON_DISCRIPTION,
                      commands.CMD_TERMINAL_PARAM_ON_EXAMPLE, commands.CMD_TERMINAL_PARAM_ON_ISFLAG,
                      commands.CMD_TERMINAL_PARAM_ON_ALLOWED_EMPTY),
+            packUI.NewParam(commands.CMD_TERMINAL_PARAM_OFF, commands.CMD_TERMINAL_PARAM_OFF_DISCRIPTION,
+                     commands.CMD_TERMINAL_PARAM_OFF_EXAMPLE, commands.CMD_TERMINAL_PARAM_OFF_ISFLAG,
+                     commands.CMD_TERMINAL_PARAM_OFF_ALLOWED_EMPTY),
             packUI.NewParam(commands.CMD_TERMINAL_PARAM_NAME, commands.CMD_TERMINAL_PARAM_NAME_DISCRIPTION,
                      commands.CMD_TERMINAL_PARAM_NAME_EXAMPLE, commands.CMD_TERMINAL_PARAM_NAME_ISFLAG,
                      commands.CMD_TERMINAL_PARAM_NAME_ALLOWED_EMPTY),
@@ -321,7 +341,10 @@ func main() {
                      commands.CMD_SETTINGS_PARAM_SAVE_ALLOWED_EMPTY),
             packUI.NewParam(commands.CMD_SETTINGS_PARAM_DEFAULT, commands.CMD_SETTINGS_PARAM_DEFAULT_DISCRIPTION,
                      commands.CMD_SETTINGS_PARAM_DEFAULT_EXAMPLE, commands.CMD_SETTINGS_PARAM_DEFAULT_ISFLAG,
-                     commands.CMD_SETTINGS_PARAM_DEFAULT_ALLOWED_EMPTY)},
+                     commands.CMD_SETTINGS_PARAM_DEFAULT_ALLOWED_EMPTY),
+            packUI.NewParam(commands.CMD_SETTINGS_PARAM_APPLY, commands.CMD_SETTINGS_PARAM_APPLY_DISCRIPTION,
+                     commands.CMD_SETTINGS_PARAM_APPLY_EXAMPLE, commands.CMD_SETTINGS_PARAM_APPLY_ISFLAG,
+                     commands.CMD_SETTINGS_PARAM_APPLY_ALLOWED_EMPTY)},
         commands.CMD_SETTINGS_PARAMS_REQUIRED,
         commands.CMD_SETTINGS_DEFAULT_PARAM,
         cmdSettingsExecute)
@@ -371,7 +394,9 @@ func main() {
     // Обрабатываем событие на установку нового значения у индикатора
     terminal.AddAction(marketConst.EVENT_SET_INDICATOR, eventSetIndicator)
     // Применяем настройки к терминалу
-    settings.Apply(terminal)
+    if !settings.Apply(terminal) {
+        frame.Error(MSG_SETTINGS_ERROR_APPLY)
+    }
     // Отображаем индикаторы
     frame.Consoles[views.CONSOLE_INDICATORS].Execute(nil)
     frame.Consoles[views.CONSOLE_INDICATORS].Redraw()

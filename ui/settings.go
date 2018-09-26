@@ -121,12 +121,12 @@ func (settings *Settings) Apply(terminal *market.Terminal) bool {
         exchange := terminal.Exchanges[setExchange]
         if exchange != nil {
             for entity, value := range entities {
-                if value {
-                    _, success := exchange.Turn(entity)
-                    if !success {
-                        return false
-                    }
+            // if value {
+                _, success := exchange.Turn(entity, value)
+                if !success {
+                    return false
                 }
+            // }
             }
         }
     }

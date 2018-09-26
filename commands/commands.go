@@ -54,13 +54,20 @@ const (
     // PARAMS terminal
     // EXAMPLE terminal --on --name:название_биржи --entity:тип_сигнала
     CMD_TERMINAL_PARAM_ON = "on"
-    CMD_TERMINAL_PARAM_ON_DISCRIPTION = "Параметр активирования биржи (после комманды с этим параметром будут поступать сигналы от указанной биржы и типа сигнала). " +
-                                        "Данная комманда является реверсной: если выключено то она ключит и наоборот."
+    CMD_TERMINAL_PARAM_ON_DISCRIPTION = "Параметр старта биржи (после комманды с этим параметром будут поступать сигналы от указанной биржы и типа сигнала). "
     CMD_TERMINAL_PARAM_ON_EXAMPLE = TERMINAL_TEXT_START_CMD + TEXT_SEPARATOR_CMD_PARAM + CMD_TERMINAL_PARAM_ON +
                                     TEXT_SEPARATOR_CMD_PARAM + CMD_TERMINAL_PARAM_NAME + TEXT_SEPARATOR_CMD_PARAM_VALUE + "название_биржи " +
                                     TEXT_SEPARATOR_CMD_PARAM + CMD_TERMINAL_PARAM_ENTITY + TEXT_SEPARATOR_CMD_PARAM_VALUE + "тип_сигнала"
     CMD_TERMINAL_PARAM_ON_ISFLAG = true
     CMD_TERMINAL_PARAM_ON_ALLOWED_EMPTY = false
+    // EXAMPLE terminal --off --name:название_биржи --entity:тип_сигнала
+    CMD_TERMINAL_PARAM_OFF = "off"
+    CMD_TERMINAL_PARAM_OFF_DISCRIPTION = "Параметр остановки биржи (после комманды с этим параметром будут поступать сигналы от указанной биржы и типа сигнала). "
+    CMD_TERMINAL_PARAM_OFF_EXAMPLE = TERMINAL_TEXT_START_CMD + TEXT_SEPARATOR_CMD_PARAM + CMD_TERMINAL_PARAM_OFF +
+                                    TEXT_SEPARATOR_CMD_PARAM + CMD_TERMINAL_PARAM_NAME + TEXT_SEPARATOR_CMD_PARAM_VALUE + "название_биржи " +
+                                    TEXT_SEPARATOR_CMD_PARAM + CMD_TERMINAL_PARAM_ENTITY + TEXT_SEPARATOR_CMD_PARAM_VALUE + "тип_сигнала"
+    CMD_TERMINAL_PARAM_OFF_ISFLAG = true
+    CMD_TERMINAL_PARAM_OFF_ALLOWED_EMPTY = false
     //
     CMD_TERMINAL_PARAM_ENTITY = "entity"
     CMD_TERMINAL_PARAM_ENTITY_DISCRIPTION = "Сипользуется в связке с другими параметрами, передает название сигнала"
@@ -111,6 +118,13 @@ const (
     CMD_SETTINGS_PARAM_DEFAULT_EXAMPLE = SETTINGS_TEXT_START_CMD + TEXT_SEPARATOR_CMD_PARAM + CMD_SETTINGS_PARAM_DEFAULT
     CMD_SETTINGS_PARAM_DEFAULT_ISFLAG = true
     CMD_SETTINGS_PARAM_DEFAULT_ALLOWED_EMPTY = false
+    //
+    // EXAMPLE settings --apply
+    CMD_SETTINGS_PARAM_APPLY = "apply"
+    CMD_SETTINGS_PARAM_APPLY_DISCRIPTION = "Параметр применения параметров записанных в текущей настройке."
+    CMD_SETTINGS_PARAM_APPLY_EXAMPLE = SETTINGS_TEXT_START_CMD + TEXT_SEPARATOR_CMD_PARAM + CMD_SETTINGS_PARAM_APPLY
+    CMD_SETTINGS_PARAM_APPLY_ISFLAG = true
+    CMD_SETTINGS_PARAM_APPLY_ALLOWED_EMPTY = false
 
     // CMD strategy
     CMD_STRATEGY = "strategy"
