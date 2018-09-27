@@ -141,10 +141,20 @@ const (
                                       TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_VALUE + TEXT_SEPARATOR_CMD_PARAM_VALUE + "значение_свойства"
     CMD_STRATEGY_PARAM_NAME_ISFLAG = false
     CMD_STRATEGY_PARAM_NAME_ALLOWED_EMPTY = false
+    // EXAMPLE strategy --name:название_стратегии --symbol:торговая_пара --param:название_свойства --value:значение_свойства
+    CMD_STRATEGY_PARAM_SYMBOL = "symbol"
+    CMD_STRATEGY_PARAM_SYMBOL_DISCRIPTION = "Параметр указания для какой торговой пары будут указыватся параметры"
+    CMD_STRATEGY_PARAM_SYMBOL_EXAMPLE = STRATEGY_TEXT_START_CMD + TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_NAME + TEXT_SEPARATOR_CMD_PARAM_VALUE + "название_стратегии " +
+                                      TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_SYMBOL + TEXT_SEPARATOR_CMD_PARAM_VALUE + "торговая_пара " +
+                                      TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_PARAM + TEXT_SEPARATOR_CMD_PARAM_VALUE + "название_свойства " +
+                                      TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_VALUE + TEXT_SEPARATOR_CMD_PARAM_VALUE + "значение_свойства"
+    CMD_STRATEGY_PARAM_SYMBOL_ISFLAG = false
+    CMD_STRATEGY_PARAM_SYMBOL_ALLOWED_EMPTY = false
     // EXAMPLE strategy --name:название_стратегии --param:название_свойства --value:значение_свойства
     CMD_STRATEGY_PARAM_PARAM = "param"
     CMD_STRATEGY_PARAM_PARAM_DISCRIPTION = "Параметр указания названия свойства стратегии к которой необходимо установить значение"
     CMD_STRATEGY_PARAM_PARAM_EXAMPLE = STRATEGY_TEXT_START_CMD + TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_NAME + TEXT_SEPARATOR_CMD_PARAM_VALUE + "название_стратегии " +
+                                       TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_SYMBOL + TEXT_SEPARATOR_CMD_PARAM_VALUE + "торговая_пара " +
                                        TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_PARAM + TEXT_SEPARATOR_CMD_PARAM_VALUE + "название_свойства " +
                                        TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_VALUE + TEXT_SEPARATOR_CMD_PARAM_VALUE + "значение_свойства"
     CMD_STRATEGY_PARAM_PARAM_ISFLAG = false
@@ -154,6 +164,7 @@ const (
     CMD_STRATEGY_PARAM_VALUE = "value"
     CMD_STRATEGY_PARAM_VALUE_DISCRIPTION = "Параметр для указания значения свойства стратегии"
     CMD_STRATEGY_PARAM_VALUE_EXAMPLE = STRATEGY_TEXT_START_CMD + TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_NAME + TEXT_SEPARATOR_CMD_PARAM_VALUE + "название_стратегии " +
+                                       TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_SYMBOL + TEXT_SEPARATOR_CMD_PARAM_VALUE + "торговая_пара " +
                                        TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_PARAM + TEXT_SEPARATOR_CMD_PARAM_VALUE + "название_свойства " +
                                        TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_VALUE + TEXT_SEPARATOR_CMD_PARAM_VALUE + "значение_свойства"
     CMD_STRATEGY_PARAM_VALUE_ISFLAG = false
@@ -161,9 +172,52 @@ const (
     //
     // EXAMPLE strategy --name:название_стратегии --on
     CMD_STRATEGY_PARAM_ON = "on"
-    CMD_STRATEGY_PARAM_ON_DISCRIPTION = "Параметр запуска или остановки работы стратегии."
+    CMD_STRATEGY_PARAM_ON_DISCRIPTION = "Параметр запуска работы стратегии."
     CMD_STRATEGY_PARAM_ON_EXAMPLE = STRATEGY_TEXT_START_CMD + TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_NAME + TEXT_SEPARATOR_CMD_PARAM_VALUE + "название_стратегии " +
                                     TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_ON
     CMD_STRATEGY_PARAM_ON_ISFLAG = true
     CMD_STRATEGY_PARAM_ON_ALLOWED_EMPTY = false
+    //
+    // EXAMPLE strategy --name:название_стратегии --off
+    CMD_STRATEGY_PARAM_OFF = "off"
+    CMD_STRATEGY_PARAM_OFF_DISCRIPTION = "Параметр остановки работы стратегии."
+    CMD_STRATEGY_PARAM_OFF_EXAMPLE = STRATEGY_TEXT_START_CMD + TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_NAME + TEXT_SEPARATOR_CMD_PARAM_VALUE + "название_стратегии " +
+                                    TEXT_SEPARATOR_CMD_PARAM + CMD_STRATEGY_PARAM_OFF
+    CMD_STRATEGY_PARAM_OFF_ISFLAG = true
+    CMD_STRATEGY_PARAM_OFF_ALLOWED_EMPTY = false
+    // CMD app
+    CMD_APP = "app"
+    APP_TEXT_START_CMD = CMD_STRATEGY + TEXT_SEPARATOR_CMD
+    CMD_APP_DISCRIPTION = "Команда управления окном приложения"
+    CMD_APP_PARAMS_REQUIRED = true
+    CMD_APP_DEFAULT_PARAM = "redraw"
+    // PARAMS app
+    // EXAMPLE app --redraw
+    CMD_APP_PARAM_REDRAW = "redraw"
+    CMD_APP_PARAM_REDRAW_DISCRIPTION = "Параметр перезаписи экрана, это команда пмагает извабится от артифактов на экране"
+    CMD_APP_PARAM_REDRAW_EXAMPLE = APP_TEXT_START_CMD + TEXT_SEPARATOR_CMD_PARAM + CMD_APP_PARAM_REDRAW
+    CMD_APP_PARAM_REDRAW_ISFLAG = true
+    CMD_APP_PARAM_REDRAW_ALLOWED_EMPTY = false
 )
+/*
+    app redraw
+    terminal --name:kucoin --entity:tick --symbol:BTC-USDT
+    terminal --on --name:kucoin --entity:tick
+
+    terminal --name:kucoin --entity:depth --symbol:BTC-USDT
+    terminal --on --name:kucoin --entity:depth
+
+    terminal --name:hitbtc --entity:tick --symbol:ETHBTC
+    terminal --on --name:hitbtc --entity:tick
+
+    terminal --name:hitbtc --entity:depth --symbol:ETHBTC
+    terminal --on --name:hitbtc --entity:depth
+
+    terminal --name:hitbtc --entity:candle --symbol:ETHBTC
+    terminal --on --name:hitbtc --entity:candle
+
+    strategy --name:arbitrage --on
+    strategy --name:arbitrage --off
+    strategy --name:arbitrage --symbol:def --param:index_depth --value:1
+    strategy --name:arbitrage --symbol:def --param:limit --value:0
+*/

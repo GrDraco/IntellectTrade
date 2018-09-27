@@ -24,7 +24,7 @@
                 "values_is_array": true,
                 "path": [
                     "data",
-                    "BUY"
+                    "SELL"
                 ],
                 "index_price": 0,
                 "index_amount": 1,
@@ -34,7 +34,7 @@
                 "values_is_array": true,
                 "path": [
                     "data",
-                    "SELL"
+                    "BUY"
                 ],
                 "index_price": 0,
                 "index_amount": 1,

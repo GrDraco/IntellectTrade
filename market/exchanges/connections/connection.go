@@ -3,22 +3,6 @@
     он умеет связываться по разным каналам, пока это
     1. api
     2. websocket
-
-    //terminal --name:kucoin --entity:tick --symbol:BTC-USDT
-    //terminal --on --name:kucoin --entity:tick
-
-    //terminal --name:kucoin --entity:depth --symbol:BTC-USDT
-    //terminal --on --name:kucoin --entity:depth
-
-    //terminal --name:hitbtc --entity:tick --symbol:ETHBTC
-    //terminal --on --name:hitbtc --entity:tick
-
-    //terminal --name:hitbtc --entity:depth --symbol:ETHBTC
-    //terminal --on --name:hitbtc --entity:depth
-
-    //terminal --name:hitbtc --entity:candle --symbol:ETHBTC
-    //terminal --on --name:hitbtc --entity:candle
-
 */
 package connections
 

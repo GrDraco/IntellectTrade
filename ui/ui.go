@@ -153,6 +153,11 @@ func NewUI(consoleMsg, consoleLog string, console func(*UI)) *UI {
 }
 
 func (ui *UI) RedrawAll() {
+    //Дедаем общую очичтпу экрана
+    termbox.Clear(termbox.ColorBlack, termbox.ColorBlack)
+    time.Sleep(time.Duration(5)*time.Millisecond)
+    termbox.Flush()
+    time.Sleep(time.Duration(5)*time.Millisecond)
     // Рисуем основную консоль
     ui.Redraw()
     for _, console := range ui.Consoles {

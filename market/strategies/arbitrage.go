@@ -3,6 +3,7 @@ package strategies
 import (
     // "fmt"
 
+    "../../utilities"
     "../../market/core"
     "../../market/constants"
 )
@@ -50,7 +51,7 @@ func NewArbitrage(name string) *Arbitrage {
     arbitrage.SetProperty(PROPERTY_QUOTATIONS, make(map[string]map[string]*Quotations))
     // Значения торговых условий поумолчанию
     arbitrage.SetPropertySymbol(PROPERTY_DEF_SYMBOL, PROPERTY_INDEXDEPTH, 0)
-    arbitrage.SetPropertySymbol(PROPERTY_DEF_SYMBOL, PROPERTY_LIMIT, 0.001)
+    arbitrage.SetPropertySymbol(PROPERTY_DEF_SYMBOL, PROPERTY_LIMIT, 0.00000001)
     // Инициализируем расчет торговой стратегии
     arbitrage.calculate = func (signal *core.Signal) bool {
         // Данная стратегия работает только по сигналам из стакана
@@ -92,32 +93,42 @@ func (arbitrage *Arbitrage) readQuotations(signal *core.Signal) map[string]*Quot
     }
     // Если пришедшие данные по стакану не пустые то записываем их
     if len(signal.Depth().Asks) > 0 {
-        quotations.Depth.Asks = signal.Depth().Asks
-        // for price, ask := range signal.Depth().Asks {
-        //     if ask.Amount > 0 {
-        //         quotations.Depth.Asks[price] = ask
-        //     }
-        // }
+        if signal.DataIsUpdates {
+            for price, ask := range signal.Depth().Asks {
+                if ask.Amount > 0 {
+                    quotations.Depth.Asks[price] = ask
+                } else {
+                    delete(quotations.Depth.Asks, price)
+                }
+            }
+        } else {
+            quotations.Depth.Asks = signal.Depth().Asks
+        }
     }
     if len(signal.Depth().Bids) > 0 {
-        quotations.Depth.Bids = signal.Depth().Bids
-        // for price, bid := range signal.Depth().Bids {
-        //     if bid.Amount > 0 {
-        //         quotations.Depth.Bids[price] = bid
-        //     }
-        // }
+        if signal.DataIsUpdates {
+            for price, bid := range signal.Depth().Bids {
+                if bid.Amount > 0 {
+                    quotations.Depth.Bids[price] = bid
+                } else {
+                    delete(quotations.Depth.Bids, price)
+                }
+            }
+        } else {
+            quotations.Depth.Bids = signal.Depth().Bids
+        }
     }
     // Сохраняем некоторую вспомогательную информацию
     quotations.Signal = signal
     if arbitrage.GetPropertySymbol(signal.Symbol, PROPERTY_INDEXDEPTH) != nil {
-        quotations.IndexDepth = int(arbitrage.GetPropertySymbol(signal.Symbol, PROPERTY_INDEXDEPTH).(float64))
+        quotations.IndexDepth = int(utilities.ToFloat(arbitrage.GetPropertySymbol(signal.Symbol, PROPERTY_INDEXDEPTH)))
     } else {
-        quotations.IndexDepth = int(arbitrage.GetPropertySymbol(PROPERTY_DEF_SYMBOL, PROPERTY_INDEXDEPTH).(float64))
+        quotations.IndexDepth = int(utilities.ToFloat(arbitrage.GetPropertySymbol(PROPERTY_DEF_SYMBOL, PROPERTY_INDEXDEPTH)))
     }
     if arbitrage.GetPropertySymbol(signal.Symbol, PROPERTY_LIMIT) != nil {
-        quotations.Limit = arbitrage.GetPropertySymbol(signal.Symbol, PROPERTY_LIMIT).(float64)
+        quotations.Limit = utilities.ToFloat(arbitrage.GetPropertySymbol(signal.Symbol, PROPERTY_LIMIT))
     } else {
-        quotations.Limit = arbitrage.GetPropertySymbol(PROPERTY_DEF_SYMBOL, PROPERTY_LIMIT).(float64)
+        quotations.Limit = utilities.ToFloat(arbitrage.GetPropertySymbol(PROPERTY_DEF_SYMBOL, PROPERTY_LIMIT))
     }
     symbols[signal.Exchange] = quotations
     return symbols
@@ -138,13 +149,13 @@ func (arbitrage *Arbitrage) chooseBestPrices() map[string]*BestPrices {
             }
             if quotation.Depth.Asks != nil {
                 if len(quotation.Depth.Asks) > 0 {
-                    ask := core.GetOrderByIndex(quotation.Depth.Asks, quotation.IndexDepth)
+                    ask := quotation.Depth.GetAsks()[quotation.IndexDepth]
                     if ask != nil {
                         if best.Ask.Price == 0 {
                             best.Ask.Price = ask.Price
                             best.Ask.Exchange = quotation.Signal.Exchange
                         } else {
-                            if ask.Price > best.Ask.Price {
+                            if ask.Price < best.Ask.Price {
                                 best.Ask.Price = ask.Price
                                 best.Ask.Exchange = exchange
                             }
@@ -154,14 +165,14 @@ func (arbitrage *Arbitrage) chooseBestPrices() map[string]*BestPrices {
             }
             // Находим самую дешевое предложение на продажу
             if quotation.Depth.Bids != nil {
-                if len(quotation.Depth.Bids) >= 0 {
-                    bid := core.GetOrderByIndex(quotation.Depth.Bids, quotation.IndexDepth)
+                if len(quotation.Depth.Bids) > 0 {
+                    bid := quotation.Depth.GetBids()[quotation.IndexDepth]
                     if bid != nil {
                         if best.Bid.Price == 0 {
                             best.Bid.Price = bid.Price
                             best.Bid.Exchange = quotation.Signal.Exchange
                         } else {
-                            if bid.Price < best.Bid.Price {
+                            if bid.Price > best.Bid.Price {
                                 best.Bid.Price = bid.Price
                                 best.Bid.Exchange = exchange
                             }
@@ -170,7 +181,7 @@ func (arbitrage *Arbitrage) chooseBestPrices() map[string]*BestPrices {
                 }
             }
         }
-        if (best.Ask.Price - best.Bid.Price) >= limit {
+        if (best.Bid.Price - best.Ask.Price) >= limit {
             bestBySymbol[symbol] = best
         } else {
             bestBySymbol[symbol] = EmptyBestRpices(symbol)

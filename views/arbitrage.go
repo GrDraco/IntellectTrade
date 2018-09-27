@@ -35,16 +35,17 @@ func arbitrageDraw(console *packUI.Console, bodyX, bodyY int) {
         keysExchange = append(keysExchange, key)
     }
     sort.Strings(keysExchange)
-    height_1 := 0
-    height_2 := 0
-    width_1 := 0
+    heightDepths := 0
     column := bodyX + 2
     for _, exchange := range keysExchange {
-        height_1, width_1 = components.ASKsDraw(column, line, quotations[keysSymbol[0]][exchange].Depth, keysSymbol[0], exchange)
-        height_2, _ = components.BIDsDraw(column, line + height_1 + 1, quotations[keysSymbol[0]][exchange].Depth, keysSymbol[0], exchange)
-        column = column + width_1 + 1
+        h_1, w_1 := components.ASKsDraw(column, line, quotations[keysSymbol[0]][exchange].Depth, keysSymbol[0], exchange, 10)
+        h_2, _ := components.BIDsDraw(column, line + h_1 + 1, quotations[keysSymbol[0]][exchange].Depth, keysSymbol[0], exchange, 10)
+        column = column + w_1 + 1
+        if (h_1 + h_2) > heightDepths {
+            heightDepths = h_1 + h_2
+        }
     }
-    line = line + height_1 + height_2 + 1
+    line = line + heightDepths + 2
     // Отображаем найденные лучшие цены
     components.BestPricesDraw(bodyX + 2, line, console.Controls["Properties"].(map[string]interface{})[strategies.PROPERTY_BESTPRICES].(map[string]*strategies.BestPrices))
 }

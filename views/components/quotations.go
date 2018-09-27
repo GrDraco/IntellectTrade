@@ -7,7 +7,6 @@ import (
 
     "../borders"
     packUI "../../ui"
-    "../../market/core"
     "../../market/strategies"
     "github.com/nsf/termbox-go"
 )
@@ -47,10 +46,10 @@ func QuotationsDraw(x, y int, quotations map[string]map[string]*strategies.Quota
             packUI.Tprint(x + 2, y + 3 + line, coldef, coldef, (strings.ToUpper(keysSymbol[i]) + " "))
             packUI.Tprint(x + 2 + column, y + 3 + line, coldef, coldef, (" " + strconv.FormatInt(int64(quotations[keysSymbol[i]][keysExchange[j]].IndexDepth), 10) + " "))
             if len(quotations[keysSymbol[i]][keysExchange[j]].Depth.Asks) > 0 {
-                packUI.Tprint(x + 2 + column + 8, y + 3 + line, coldef, coldef, (" " + strconv.FormatFloat(core.GetOrderByIndex(quotations[keysSymbol[i]][keysExchange[j]].Depth.Asks, quotations[keysSymbol[i]][keysExchange[j]].IndexDepth).Price, 'f', -1, 64) + " "))
+                packUI.Tprint(x + 2 + column + 8, y + 3 + line, coldef, coldef, (" " + strconv.FormatFloat(quotations[keysSymbol[i]][keysExchange[j]].Depth.GetAsks()[quotations[keysSymbol[i]][keysExchange[j]].IndexDepth].Price, 'f', -1, 64) + " "))
             }
             if len(quotations[keysSymbol[i]][keysExchange[j]].Depth.Bids) > 0 {
-                packUI.Tprint(x + 2 + column + 21, y + 3 + line, coldef, coldef, (" " + strconv.FormatFloat(core.GetOrderByIndex(quotations[keysSymbol[i]][keysExchange[j]].Depth.Bids, quotations[keysSymbol[i]][keysExchange[j]].IndexDepth).Price, 'f', -1, 64) + " "))
+                packUI.Tprint(x + 2 + column + 21, y + 3 + line, coldef, coldef, (" " + strconv.FormatFloat(quotations[keysSymbol[i]][keysExchange[j]].Depth.GetBids()[quotations[keysSymbol[i]][keysExchange[j]].IndexDepth].Price, 'f', -1, 64) + " "))
             }
             column = column + 34
         }

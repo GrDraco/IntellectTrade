@@ -126,6 +126,10 @@ func (terminal *Terminal) calculateActiveExchanges() {
 
 func (terminal *Terminal) AddStrategy(strategy strategies.IStrategy) {
     strategy.InitChans(terminal.chAction, terminal.chMsg, terminal.chErr)
+    // Подписываемся на событие изменение индикатора и ретранслируем по событию терминала
+    strategy.AddAction(constants.EVENT_SET_INDICATOR, func(event string, params []interface{}, callback func(string))  {
+        terminal.On(constants.EVENT_SET_INDICATOR, []interface{} { params }, nil)
+    })
     terminal.Strategies[strategy.GetName()] = strategy
 }
 

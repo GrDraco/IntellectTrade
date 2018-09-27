@@ -162,7 +162,7 @@ func CmdAmswer(cmd string, answer string) string {
     str = strings.Replace(str, constants.CMD_PLACE_ANSWER, answer, 1)
     return str
 }
-
+//TODO: Написать манифест по реализации отправки ордера на биржу
 func (exchange *Exchange) SendOrder(order *core.Order) bool {
     connection := exchange.connections[constants.ENTITY_NEW_ORDER]
     if connection != nil {
@@ -174,7 +174,7 @@ func (exchange *Exchange) SendOrder(order *core.Order) bool {
     }
     return false
 }
-
+//TODO: Написать манифест по реализации реализацию закрытия ордера на биржу
 func (exchange *Exchange) CloseOrder(order *core.Order) bool {
     connection := exchange.connections[constants.ENTITY_CLOSE_ORDER]
     if connection != nil {
@@ -186,6 +186,7 @@ func (exchange *Exchange) CloseOrder(order *core.Order) bool {
     }
     return false
 }
+//TODO: Написать манифест по реализации реализацию обновление ордера на биржу
 func (exchange *Exchange) UpdateOrder(order *core.Order) bool {
     connection := exchange.connections[constants.ENTITY_UPDATE_ORDER]
     if connection != nil {

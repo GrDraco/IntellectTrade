@@ -99,6 +99,19 @@ func (settings *Settings) Apply(terminal *market.Terminal) bool {
     if settings.ParamsExchanges == nil {
         return false
     }
+    // Запускаем стратегии согласно настроек
+    for setStartegy, entities := range settings.ParamsStartegies {
+        startegy := terminal.Strategies[setStartegy]
+        if startegy != nil {
+            for property, value := range entities {
+                if value != nil {
+                    if !startegy.SetProperty(property, value) {
+                        return false
+                    }
+                }
+            }
+        }
+    }
     // Выставляем параметры согласно настроек
     for setExchange, entities := range settings.ParamsExchanges {
         exchange := terminal.Exchanges[setExchange]
@@ -127,19 +140,6 @@ func (settings *Settings) Apply(terminal *market.Terminal) bool {
                     return false
                 }
             // }
-            }
-        }
-    }
-    // Запускаем стратегии согласно настроек
-    for setStartegy, entities := range settings.ParamsStartegies {
-        startegy := terminal.Strategies[setStartegy]
-        if startegy != nil {
-            for property, value := range entities {
-                if value != nil {
-                    if !startegy.SetProperty(property, value) {
-                        return false
-                    }
-                }
             }
         }
     }

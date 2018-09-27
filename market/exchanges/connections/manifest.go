@@ -94,6 +94,7 @@ type Manifest struct {
     RequestJSON interface{} `json:"request_json"`
     Response Response       `json:"response"`
     Regular bool            `json:"regular"`
+    DataIsUpdates bool      `json:"data_is_updates"`
     Timing float64          `json:"timing"`
     TimingUnit string       `json:"timing_unit"` //s,m,h,d,w
     // Инициализируется дополнительно
@@ -250,7 +251,8 @@ func (manifest *Manifest) ConvertToTick() error {
         Exchange: manifest.Exchange,
         Entity: constants.ENTITY_TICK,
         Symbol: clearSymbol(utilities.ToString(utilities.GetValue(manifest.Response.JSON, manifest.Response.Values.Symbol))),
-        TimeRecd: time.Now() }
+        TimeRecd: time.Now(),
+        DataIsUpdates: manifest.DataIsUpdates }
     signal.Data = &core.Tick {
         Ask: utilities.ToFloat(utilities.GetValue(manifest.Response.JSON, manifest.Response.Values.Ask)),
         Bid: utilities.ToFloat(utilities.GetValue(manifest.Response.JSON, manifest.Response.Values.Bid)),
@@ -278,7 +280,8 @@ func (manifest *Manifest) ConvertToDepth() error {
         Exchange: manifest.Exchange,
         Entity: constants.ENTITY_DEPTH,
         Symbol: clearSymbol(utilities.ToString(utilities.SearchValue(manifest.RequestJSON, "symbol"))),
-        TimeRecd: time.Now() }
+        TimeRecd: time.Now(),
+        DataIsUpdates: manifest.DataIsUpdates }
     depth := new(core.Depth)
     depth.Asks = make(map[float64]*core.Order)
     // Asks
@@ -348,7 +351,8 @@ func (manifest *Manifest) ConvertToCandle() error  {
         Exchange: manifest.Exchange,
         Entity: constants.ENTITY_CANDLE,
         Symbol: clearSymbol(utilities.ToString(utilities.SearchValue(manifest.RequestJSON, "symbol"))),
-        TimeRecd: time.Now() }
+        TimeRecd: time.Now(),
+        DataIsUpdates: manifest.DataIsUpdates }
     candles := make([]*core.Candle, 0)
     var arr interface{}
     if len(manifest.Response.Values.Candles.Path) > 0 {

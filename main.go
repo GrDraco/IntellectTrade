@@ -176,26 +176,53 @@ func cmdSettingsExecute(command *packUI.Command) bool {
 // Функция обработки исполнения команды strategy
 func cmdStrategyExecute(command *packUI.Command) bool {
     name := command.Params[commands.CMD_STRATEGY_PARAM_NAME].Value
-    // param := command.Params[commands.CMD_STRATEGY_PARAM_PARAM].Value
-    // value := command.Params[commands.CMD_STRATEGY_PARAM_VALUE].Value
+    symbol := command.Params[commands.CMD_STRATEGY_PARAM_SYMBOL].Value
+    param := command.Params[commands.CMD_STRATEGY_PARAM_PARAM].Value
+    value := command.Params[commands.CMD_STRATEGY_PARAM_VALUE].Value
     on := command.Params[commands.CMD_STRATEGY_PARAM_ON].Value
+    off := command.Params[commands.CMD_STRATEGY_PARAM_OFF].Value
     terminal := frame.Controls["terminal"].(*market.Terminal)
-    if on != "" && name != "" {
+    result := false
+    if (on != "" || off != "") && name != "" {
         strategy := terminal.Strategies[name]
         if strategy != nil {
-            strategy.Turn()
-            // Сохраняем в настройках
-            for property, value := range strategy.GetProperties() {
-                if !strategy.GetKeysForSave()[property] {
-                    continue
-                }
-                if settings.ParamsStartegies[name] == nil {
-                    settings.ParamsStartegies[name] = make(map[string]interface{})
-                }
-                settings.ParamsStartegies[name][property] = value
+            var start bool
+            if on != "" {
+                start = true
             }
-            return true
+            if off != "" {
+                start = false
+            }
+            strategy.Turn(start)
+            result = true
         }
+    }
+    if name != "" && symbol != "" && param != "" && value != "" {
+        strategy := terminal.Strategies[name]
+        result = strategy.SetPropertySymbol(symbol, param, value)
+    }
+    // Сохраняем в настройках
+    if result {
+        strategy := terminal.Strategies[name]
+        for property, value := range strategy.GetProperties() {
+            if !strategy.GetKeysForSave()[property] {
+                continue
+            }
+            if settings.ParamsStartegies[name] == nil {
+                settings.ParamsStartegies[name] = make(map[string]interface{})
+            }
+            settings.ParamsStartegies[name][property] = value
+        }
+        return true
+    }
+    return false
+}
+// Функция обработки исполнения команды app
+func cmdAppExecute(command *packUI.Command) bool {
+    redraw := command.Params[commands.CMD_APP_PARAM_REDRAW].Value
+    if redraw != "" {
+        frame.RedrawAll()
+        return true
     }
     return false
 }
@@ -232,13 +259,13 @@ func eventCalculateAction(event string, params []interface{}, callback func(stri
 }
 // Функция обработки события установки нового значения индикатора
 func eventSetIndicator(event string, params []interface{}, callback func(string)) {
-    if params == nil {
-        return
-    }
-    if len(params) >= 2 {
-        frame.Consoles[views.CONSOLE_INDICATORS].Execute(params)
+    // if params == nil {
+    //     return
+    // }
+    // if len(params) >= 2 {
+        frame.Consoles[views.CONSOLE_INDICATORS].Execute(nil)
         frame.Consoles[views.CONSOLE_INDICATORS].Redraw()
-    }
+    // }
 }
 // Функция загрузки сохранненых параметров
 func loadCurrentSettings() error {
@@ -355,6 +382,9 @@ func main() {
             packUI.NewParam(commands.CMD_STRATEGY_PARAM_NAME, commands.CMD_STRATEGY_PARAM_NAME_DISCRIPTION,
                      commands.CMD_STRATEGY_PARAM_NAME_EXAMPLE, commands.CMD_STRATEGY_PARAM_NAME_ISFLAG,
                      commands.CMD_STRATEGY_PARAM_NAME_ALLOWED_EMPTY),
+            packUI.NewParam(commands.CMD_STRATEGY_PARAM_SYMBOL, commands.CMD_STRATEGY_PARAM_SYMBOL_DISCRIPTION,
+                     commands.CMD_STRATEGY_PARAM_SYMBOL_EXAMPLE, commands.CMD_STRATEGY_PARAM_SYMBOL_ISFLAG,
+                     commands.CMD_STRATEGY_PARAM_SYMBOL_ALLOWED_EMPTY),
             packUI.NewParam(commands.CMD_STRATEGY_PARAM_PARAM, commands.CMD_STRATEGY_PARAM_PARAM_DISCRIPTION,
                      commands.CMD_STRATEGY_PARAM_PARAM_EXAMPLE, commands.CMD_STRATEGY_PARAM_PARAM_ISFLAG,
                      commands.CMD_STRATEGY_PARAM_PARAM_ALLOWED_EMPTY),
@@ -363,10 +393,23 @@ func main() {
                      commands.CMD_STRATEGY_PARAM_VALUE_ALLOWED_EMPTY),
             packUI.NewParam(commands.CMD_STRATEGY_PARAM_ON, commands.CMD_STRATEGY_PARAM_ON_DISCRIPTION,
                      commands.CMD_STRATEGY_PARAM_ON_EXAMPLE, commands.CMD_STRATEGY_PARAM_ON_ISFLAG,
-                     commands.CMD_STRATEGY_PARAM_ON_ALLOWED_EMPTY)},
+                     commands.CMD_STRATEGY_PARAM_ON_ALLOWED_EMPTY),
+            packUI.NewParam(commands.CMD_STRATEGY_PARAM_OFF, commands.CMD_STRATEGY_PARAM_OFF_DISCRIPTION,
+                     commands.CMD_STRATEGY_PARAM_OFF_EXAMPLE, commands.CMD_STRATEGY_PARAM_OFF_ISFLAG,
+                     commands.CMD_STRATEGY_PARAM_OFF_ALLOWED_EMPTY)},
         commands.CMD_STRATEGY_PARAMS_REQUIRED,
         commands.CMD_STRATEGY_DEFAULT_PARAM,
         cmdStrategyExecute)
+    // Комманда "app"
+    frame.Controls[views.CONTROL_COMMANDS].(map[string]*packUI.Command)[commands.CMD_APP] = packUI.NewCommand(
+        commands.CMD_APP, commands.CMD_APP_DISCRIPTION,
+        []*packUI.Param {
+            packUI.NewParam(commands.CMD_APP_PARAM_REDRAW, commands.CMD_APP_PARAM_REDRAW_DISCRIPTION,
+                     commands.CMD_APP_PARAM_REDRAW_EXAMPLE, commands.CMD_APP_PARAM_REDRAW_ISFLAG,
+                     commands.CMD_APP_PARAM_REDRAW_ALLOWED_EMPTY)},
+        commands.CMD_APP_PARAMS_REQUIRED,
+        commands.CMD_APP_DEFAULT_PARAM,
+        cmdAppExecute)
 	//-------------------------------------------------------------------------
 	// Устанавливаем текущую консоль
     if settings.ParamsMain[PARAM_MAIN_CONSOLE] == "" {

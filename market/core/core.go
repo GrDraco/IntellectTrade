@@ -2,8 +2,9 @@ package core
 
 import (
     // "fmt"
-    "strconv"
     "time"
+    "sort"
+    "strconv"
     "github.com/satori/go.uuid"
     "../../utilities"
     "../../market/constants"
@@ -132,6 +133,33 @@ type Depth struct {
     Bids map[float64]*Order   // Ордер на продажу
 }
 //
+func (depth *Depth) GetAsks() []*Order {
+    return SortOrders(depth.Asks, true)
+}
+//
+func (depth *Depth) GetBids() []*Order {
+    return SortOrders(depth.Bids, false)
+}
+//
+func SortOrders(orders map[float64]*Order, sortUp bool) (sorted []*Order) {
+    var keys []float64
+    for key, _ := range orders {
+        keys = append(keys, key)
+    }
+    sort.Float64s(keys)
+    sorted = make([]*Order, 0)
+    if sortUp{
+        for i := 0; i < len(keys); i++ {
+            sorted = append(sorted, orders[keys[i]])
+        }
+    } else {
+        for i := len(keys) - 1; i >= 0; i-- {
+            sorted = append(sorted, orders[keys[i]])
+        }
+    }
+    return
+}
+//
 func GetOrderByIndex(prices map[float64]*Order, index int) *Order {
     i := 0
     for _, order := range prices {
@@ -150,6 +178,7 @@ type Signal struct {
     Entity string       // Передеаваемая сущьность в свойстве Data
     Symbol string       // Торговая пара
     Data interface {}   // Полученные данные от биржы
+    DataIsUpdates bool  // Флаг указывающий на то что данные являются обновлениями а неполным срезом запрашиваемой сущьности
     TimeRecd time.Time  // Время формирования сигнала
     TimeOut bool        // Превышено ли время допустимого ожидания
     Speed int64         // Время за которое сигнал пришол от формирования до передачи конечному потребителю

@@ -92,5 +92,8 @@ func valueToString(text *packUI.Text) *packUI.Text {
         }
         return res
     }
+    if reflect.TypeOf(text.Value).Elem().Name() == "StrategyAction" {
+        //TODO: Написать конвертацию действий стратегии для вывода в лог
+    }
     return nil
 }
