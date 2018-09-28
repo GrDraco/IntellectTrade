@@ -96,14 +96,14 @@ func cmdTerminalExecute(command *packUI.Command) bool {
         exchange := terminal.Exchanges[name]
         if exchange != nil {
             params := make(map[string]interface{})
-            params["symbol"] = symbol
+            params[exchange.GetManifest(entity).RequestSymbolField] = symbol
             if exchange.SetValues(entity, params) {
                 // Сохраняем в настройках
                 if settings.ParamsExchanges[name] == nil {
                     settings.ParamsExchanges[name] = make(map[string]map[string]string)
                     settings.ParamsExchanges[name][entity] = make(map[string]string)
                 }
-                settings.ParamsExchanges[name][entity]["symbol"] = symbol
+                settings.ParamsExchanges[name][entity][exchange.GetManifest(entity).RequestSymbolField] = symbol
                 return true
             }
         }

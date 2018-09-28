@@ -5,6 +5,7 @@
     "entity": "Tick",
     "url": "https://api.kucoin.com/v1/open/tick",
     "origin": "",
+    "request_sumbol_field": "symbol",
     "request_json": {
         "symbol": ""
     },

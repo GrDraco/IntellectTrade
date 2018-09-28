@@ -5,6 +5,7 @@
     "entity": "Depth",
     "url": "wss://api.hitbtc.com/api/2/ws",
     "origin": "http://localhost/",
+    "request_sumbol_field": "symbol",
     "request_json": {
         "method": "subscribeOrderbook",
         "params": {

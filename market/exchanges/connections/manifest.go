@@ -4,14 +4,15 @@
 package connections
 
 import (
+    "os"
+    "fmt"
+    "time"
     "errors"
     "strings"
     "io/ioutil"
-    "os"
     "encoding/json"
     "github.com/satori/go.uuid"
-    "time"
-    // "fmt"
+
     "../../constants"
     "../../core"
     "../../../utilities"
@@ -20,6 +21,10 @@ import (
 type ArrayValues struct {
     Path []string             `json:"path"`
     ValuesIsArray bool        `json:"values_is_array"`
+    ResponseIsArray bool      `json:"response_is_array"`
+    PathArray []int64         `json:"path_array"`
+    TypeValue string          `json:"type_value"`
+    DirectionValue int        `json:"direction_value"`
     // Пути к значениям внутри масивов
     ArrPrice []string         `json:"arr_price"`
     ArrAmount []string        `json:"arr_amount"`
@@ -32,6 +37,7 @@ type ArrayValues struct {
     ArrVolumeQuote []string   `json:"arr_volumeQuote"`
 
     // Позиции значений в масиве
+    IndexType []int64         `json:"index_type"`
     IndexPrice int64          `json:"index_price"`
     IndexAmount int64         `json:"index_amount"`
     IndexVolume int64         `json:"index_volume"`
@@ -45,16 +51,18 @@ type ArrayValues struct {
 
 type Values struct {
     // Пути к значетиям
-    Ask []string            `json:"ask"`
-    Bid []string            `json:"bid"`
-    Volume []string         `json:"volume"`
-    Symbol []string         `json:"symbol"`
-    Timestamp []string      `json:"timestamp"`
-    Ping []string           `json:"ping"`
+    Ask []string             `json:"ask"`
+    Bid []string             `json:"bid"`
+    Volume []string          `json:"volume"`
+    Symbol []string          `json:"symbol"`
+    Timestamp []string       `json:"timestamp"`
+    Ping []string            `json:"ping"`
     // Пути к данным с масивами
-    Asks ArrayValues        `json:"asks"`
-    Bids ArrayValues        `json:"bids"`
-    Candles ArrayValues     `json:"candles"`
+    SkipRequest int64        `json:"skip_request"`
+    MixArray bool            `json:"mix_array"`
+    Asks ArrayValues         `json:"asks"`
+    Bids ArrayValues         `json:"bids"`
+    Candles ArrayValues      `json:"candles"`
 }
 
 type Failed struct {
@@ -85,18 +93,19 @@ const (
 
 type Manifest struct {
     // Задается пользователем
-    Name string             `json:"name"`
-    Exchange string         `json:"exchange"`
-    Provider string         `json:"provider"`
-    Entity string           `json:"entity"`
-    URL string              `json:"url"`
-    Origin string           `json:"origin"`
-    RequestJSON interface{} `json:"request_json"`
-    Response Response       `json:"response"`
-    Regular bool            `json:"regular"`
-    DataIsUpdates bool      `json:"data_is_updates"`
-    Timing float64          `json:"timing"`
-    TimingUnit string       `json:"timing_unit"` //s,m,h,d,w
+    Name string                 `json:"name"`
+    Exchange string             `json:"exchange"`
+    Provider string             `json:"provider"`
+    Entity string               `json:"entity"`
+    URL string                  `json:"url"`
+    Origin string               `json:"origin"`
+    RequestSymbolField string   `json:"request_sumbol_field"`
+    RequestJSON interface{}     `json:"request_json"`
+    Response Response           `json:"response"`
+    Regular bool                `json:"regular"`
+    DataIsUpdates bool          `json:"data_is_updates"`
+    Timing float64              `json:"timing"`
+    TimingUnit string           `json:"timing_unit"` //s,m,h,d,w
     // Инициализируется дополнительно
     Id string
     // Каналы для передачи данных
@@ -206,18 +215,6 @@ func (manifest *Manifest) ConvertError() error {
     if manifest.Response.JSON == nil {
         return errors.New("Incoming response.JSON is nil")
     }
-    if manifest.Response.Success == nil {
-        return errors.New("In JSON file `success` is nil")
-    }
-    if len(manifest.Response.Success) == 0 {
-        return errors.New("In JSON file `success` not elements")
-    }
-    if manifest.Response.Failed.Message == nil {
-        return errors.New("In JSON file `message` is nil")
-    }
-    if len(manifest.Response.Failed.Message) == 0 {
-        return errors.New("In JSON file `message` not elements")
-    }
     return nil
 }
 
@@ -284,45 +281,52 @@ func (manifest *Manifest) ConvertToDepth() error {
         DataIsUpdates: manifest.DataIsUpdates }
     depth := new(core.Depth)
     depth.Asks = make(map[float64]*core.Order)
-    // Asks
     // fmt.Println("method", utilities.SearchValue(manifest.RequestJSON, "method"))
-    arrAsk := utilities.GetValue(manifest.Response.JSON, manifest.Response.Values.Asks.Path)
-    if arrAsk != nil {
-        if manifest.Response.Values.Asks.ValuesIsArray {
-            for i := 0; i < len(arrAsk.([]interface{})); i++ {
-                depth.Asks[utilities.ToFloat(arrAsk.([]interface{})[i].([]interface{})[manifest.Response.Values.Asks.IndexPrice])] = &core.Order {
-                    Price: utilities.ToFloat(arrAsk.([]interface{})[i].([]interface{})[manifest.Response.Values.Asks.IndexPrice]),
-                    Amount: utilities.ToFloat(arrAsk.([]interface{})[i].([]interface{})[manifest.Response.Values.Asks.IndexAmount]),
-                    Volume: utilities.ToFloat(arrAsk.([]interface{})[i].([]interface{})[manifest.Response.Values.Asks.IndexVolume])}
-            }
-        } else {
-            for i := 0; i < len(arrAsk.([]interface{})); i++ {
-                price := utilities.ToFloat(utilities.GetValue(arrAsk.([]interface{})[i], manifest.Response.Values.Asks.ArrPrice))
-                depth.Asks[price] = &core.Order {
-                    Price: price,
-                    Amount: utilities.ToFloat(utilities.GetValue(arrAsk.([]interface{})[i], manifest.Response.Values.Asks.ArrAmount)),
-                    Volume: utilities.ToFloat(utilities.GetValue(arrAsk.([]interface{})[i], manifest.Response.Values.Asks.ArrVolume))}
+    // В зависимости в каком вмде данные обрабатываем
+    if manifest.Response.Values.MixArray {
+        // Данные в многоуровневом массиве
+        fmt.Println(manifest.Response.JSON)
+    } else {
+        // Данные в массиве находящийся в JSON
+        // Asks
+        arrAsk := utilities.GetValue(manifest.Response.JSON, manifest.Response.Values.Asks.Path)
+        if arrAsk != nil {
+            if manifest.Response.Values.Asks.ValuesIsArray {
+                for i := 0; i < len(arrAsk.([]interface{})); i++ {
+                    depth.Asks[utilities.ToFloat(arrAsk.([]interface{})[i].([]interface{})[manifest.Response.Values.Asks.IndexPrice])] = &core.Order {
+                        Price: utilities.ToFloat(arrAsk.([]interface{})[i].([]interface{})[manifest.Response.Values.Asks.IndexPrice]),
+                        Amount: utilities.ToFloat(arrAsk.([]interface{})[i].([]interface{})[manifest.Response.Values.Asks.IndexAmount]),
+                        Volume: utilities.ToFloat(arrAsk.([]interface{})[i].([]interface{})[manifest.Response.Values.Asks.IndexVolume])}
+                }
+            } else {
+                for i := 0; i < len(arrAsk.([]interface{})); i++ {
+                    price := utilities.ToFloat(utilities.GetValue(arrAsk.([]interface{})[i], manifest.Response.Values.Asks.ArrPrice))
+                    depth.Asks[price] = &core.Order {
+                        Price: price,
+                        Amount: utilities.ToFloat(utilities.GetValue(arrAsk.([]interface{})[i], manifest.Response.Values.Asks.ArrAmount)),
+                        Volume: utilities.ToFloat(utilities.GetValue(arrAsk.([]interface{})[i], manifest.Response.Values.Asks.ArrVolume))}
+                }
             }
         }
-    }
-    depth.Bids = make(map[float64]*core.Order)
-    // Bids
-    arrBid := utilities.GetValue(manifest.Response.JSON, manifest.Response.Values.Bids.Path)
-    if arrBid != nil {
-        if manifest.Response.Values.Bids.ValuesIsArray {
-            for i := 0; i < len(arrBid.([]interface{})); i++ {
-                depth.Bids[utilities.ToFloat(arrBid.([]interface{})[i].([]interface{})[manifest.Response.Values.Bids.IndexPrice])] = &core.Order {
-                    Price: utilities.ToFloat(arrBid.([]interface{})[i].([]interface{})[manifest.Response.Values.Bids.IndexPrice]),
-                    Amount: utilities.ToFloat(arrBid.([]interface{})[i].([]interface{})[manifest.Response.Values.Bids.IndexAmount]),
-                    Volume: utilities.ToFloat(arrBid.([]interface{})[i].([]interface{})[manifest.Response.Values.Bids.IndexVolume])}
-            }
-        } else {
-            for i := 0; i < len(arrBid.([]interface{})); i++ {
-                price := utilities.ToFloat(utilities.GetValue(arrBid.([]interface{})[i], manifest.Response.Values.Bids.ArrPrice))
-                depth.Bids[price] = &core.Order {
-                    Price: price,
-                    Amount: utilities.ToFloat(utilities.GetValue(arrBid.([]interface{})[i], manifest.Response.Values.Bids.ArrAmount)),
-                    Volume: utilities.ToFloat(utilities.GetValue(arrBid.([]interface{})[i], manifest.Response.Values.Bids.ArrVolume))}
+        depth.Bids = make(map[float64]*core.Order)
+        // Bids
+        arrBid := utilities.GetValue(manifest.Response.JSON, manifest.Response.Values.Bids.Path)
+        if arrBid != nil {
+            if manifest.Response.Values.Bids.ValuesIsArray {
+                for i := 0; i < len(arrBid.([]interface{})); i++ {
+                    depth.Bids[utilities.ToFloat(arrBid.([]interface{})[i].([]interface{})[manifest.Response.Values.Bids.IndexPrice])] = &core.Order {
+                        Price: utilities.ToFloat(arrBid.([]interface{})[i].([]interface{})[manifest.Response.Values.Bids.IndexPrice]),
+                        Amount: utilities.ToFloat(arrBid.([]interface{})[i].([]interface{})[manifest.Response.Values.Bids.IndexAmount]),
+                        Volume: utilities.ToFloat(arrBid.([]interface{})[i].([]interface{})[manifest.Response.Values.Bids.IndexVolume])}
+                }
+            } else {
+                for i := 0; i < len(arrBid.([]interface{})); i++ {
+                    price := utilities.ToFloat(utilities.GetValue(arrBid.([]interface{})[i], manifest.Response.Values.Bids.ArrPrice))
+                    depth.Bids[price] = &core.Order {
+                        Price: price,
+                        Amount: utilities.ToFloat(utilities.GetValue(arrBid.([]interface{})[i], manifest.Response.Values.Bids.ArrAmount)),
+                        Volume: utilities.ToFloat(utilities.GetValue(arrBid.([]interface{})[i], manifest.Response.Values.Bids.ArrVolume))}
+                }
             }
         }
     }

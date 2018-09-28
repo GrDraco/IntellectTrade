@@ -5,6 +5,7 @@
     "entity": "Depth",
     "url": "https://api.hitbtc.com/api/2/public/orderbook/{symbol}",
     "origin": "",
+    "request_sumbol_field": "symbol",
     "request_json": {
         "symbol": "",
         "limit": "10"

@@ -206,3 +206,7 @@ func (exchange *Exchange) SetIndicator(indicator string, value string) {
 func (exchange *Exchange) GetIndicators() map[string]string {
     return exchange.indicators.Storage
 }
+
+func (exchange *Exchange) GetManifest(entity string) *connections.Manifest {
+    return exchange.connections[entity].GetManifest()
+}
