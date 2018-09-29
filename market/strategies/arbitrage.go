@@ -33,7 +33,7 @@ type Quotations struct {
 }
 
 type Arbitrage struct {
-    BaseStrategy
+    BaseStrategy  // ОБЯЗВТЕЛЬНО
 }
 
 const (
@@ -47,12 +47,13 @@ const (
 
 func NewArbitrage(name string) *Arbitrage {
     arbitrage := new(Arbitrage)
-    arbitrage.init(name)
+    arbitrage.init(name) // ОБЯЗВТЕЛЬНО
     arbitrage.SetProperty(PROPERTY_QUOTATIONS, make(map[string]map[string]*Quotations))
     // Значения торговых условий поумолчанию
     arbitrage.SetPropertySymbol(PROPERTY_DEF_SYMBOL, PROPERTY_INDEXDEPTH, 0)
     arbitrage.SetPropertySymbol(PROPERTY_DEF_SYMBOL, PROPERTY_LIMIT, 0.00000001)
     // Инициализируем расчет торговой стратегии
+    // ОБЯЗВТЕЛЬНО
     arbitrage.calculate = func (signal *core.Signal) bool {
         // Данная стратегия работает только по сигналам из стакана
         if signal.Entity != constants.ENTITY_DEPTH {
