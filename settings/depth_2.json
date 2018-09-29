@@ -1,1 +1,0 @@
-{"name":"depth_2","is_default":false,"params_exchanges":{"hitbtc":{"depth":{"symbol":"ethbtc"}},"kucoin":{"depth":{"symbol":"eth-btc"}}},"started_exchanges":{"hitbtc":{"candle":false,"depth":true},"kucoin":{"depth":true}},"started_strategies":{}}

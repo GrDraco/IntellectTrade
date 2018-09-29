@@ -1,1 +1,0 @@
-{"name":"started","is_default":false,"params_exchanges":{"hitbtc":{"tick":{"symbol":"ethbtc"}},"kucoin":{"tick":{"symbol":"btc-usdt"}}},"started_exchanges":{"hitbtc":{"tick":true},"kucoin":{"tick":true}},"started_strategies":{}}
