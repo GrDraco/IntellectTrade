@@ -90,7 +90,15 @@ func GetValue(data interface{}, fieldsName []string) interface{} {
         if len(fieldsName) > 1 {
             return GetValue(data.(map[string]interface{})[fieldsName[0]], fieldsName[1:])
         }
-        return data.(map[string]interface{})[fieldsName[0]]
+        switch reflect.TypeOf(data).Kind() {
+        case reflect.Map:
+            return data.(map[string]interface{})[fieldsName[0]]
+        case reflect.String:
+            return data.(string)
+        case reflect.Float64:
+            return data.(float64)
+        }
+        return data
     }
     return nil
 }

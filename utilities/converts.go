@@ -9,7 +9,23 @@ func ToString(value interface{}) string {
     if value == nil {
         return ""
     }
-    return value.(string)
+    switch reflect.TypeOf(value).Kind() {
+    case reflect.String:
+        return value.(string)
+    case reflect.Int64:
+        return IntToString(value.(int64))
+    case reflect.Float64:
+        return FloatToString(value.(float64), -1)
+    }
+    return "error ToString"
+}
+
+func IntToString(value int64) string {
+    return strconv.FormatInt(value, 10)
+}
+
+func FloatToString(input_num float64, modulo int) string {
+    return strconv.FormatFloat(input_num, 'f', modulo, 64)
 }
 
 func ToInt(value interface{}) int64 {
