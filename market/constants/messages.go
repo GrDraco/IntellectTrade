@@ -7,6 +7,7 @@ const (
     MSG_PLACE_PROVIDER = "{provider}"
     MSG_PLACE_PARAMS = "{params}"
     MSG_PLACE_STATUS = "{status}"
+    MSG_PLACE_N = "{N}"
 
     MSG_SUCCESS = "SUCCESS"
     MSG_FAILED = "FAILED"
@@ -16,6 +17,7 @@ const (
     MSG_PARAMS_REQUIRED = "Требуются параметры: " + MSG_PLACE_PARAMS
     MSG_PARAMS_NOT_ENOUGH = "Пареметров недостаточно"
     MSG_CONNECTION_NOT_EXIST = "Коннекшен не существует"
+    MSG_CONNECTION_SKIP_RESPONSE = "Пропускаем запрос № " + MSG_PLACE_N
     MSG_CONNECTION_NOT_PARAMS = "Коннекшен " + MSG_PLACE_NAME + " не имеет параметров запроса"
     MSG_CONNECTION_DISCONNECTED_TO = "Коннекшен " + MSG_PLACE_NAME + " отключен от" + MSG_PLACE_URL
     MSG_CONNECTION_CONNECTED_TO = "Коннекшен " + MSG_PLACE_NAME + " подключен к" + MSG_PLACE_URL

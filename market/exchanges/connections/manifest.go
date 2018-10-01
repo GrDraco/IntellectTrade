@@ -5,7 +5,7 @@ package connections
 
 import (
     "os"
-    "fmt"
+    // "fmt"
     "time"
     "errors"
     "strings"
@@ -58,7 +58,6 @@ type Values struct {
     Timestamp []string       `json:"timestamp"`
     Ping []string            `json:"ping"`
     // Пути к данным с масивами
-    SkipRequest int64        `json:"skip_request"`
     MixArray bool            `json:"mix_array"`
     Asks ArrayValues         `json:"asks"`
     Bids ArrayValues         `json:"bids"`
@@ -71,9 +70,10 @@ type Failed struct {
 }
 
 type Response struct {
-    Success []string `json:"success"`
-    Failed Failed    `json:"failed"`
-    Values Values    `json:"values"`
+    SkipResponse int64  `json:"skip_response"`
+    Success []string    `json:"success"`
+    Failed Failed       `json:"failed"`
+    Values Values       `json:"values"`
     Ping int64
     JSON interface{}
 }
@@ -266,6 +266,7 @@ func (manifest *Manifest) ConvertToTick() error {
 }
 
 func (manifest *Manifest) ConvertToDepth() error {
+    // fmt.Println(manifest.Response.JSON)
     signal := new(core.Signal)
     err := manifest.ConvertToError()
     if err != nil {
@@ -285,7 +286,6 @@ func (manifest *Manifest) ConvertToDepth() error {
     // В зависимости в каком вмде данные обрабатываем
     if manifest.Response.Values.MixArray {
         // Данные в многоуровневом массиве
-        fmt.Println(manifest.Response.JSON)
     } else {
         // Данные в массиве находящийся в JSON
         // Asks

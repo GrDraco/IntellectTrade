@@ -49,12 +49,7 @@ func NewWSocket(manifest *Manifest) *WSocket {
         wSocket.err = websocket.JSON.Receive(wSocket.socket, &wSocket.manifest.Response.JSON)
     	if wSocket.err != nil {
             return wSocket.err
-        } else {
-            wSocket.err = wSocket.manifest.Convertation()
-            if wSocket.err != nil {
-                return wSocket.err
-            }
-    	}
+        }
         return nil
     }
     wSocket.close = func() error {

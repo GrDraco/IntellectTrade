@@ -66,11 +66,6 @@ func NewApi(manifest *Manifest) *Api {
         json.Unmarshal(body, &api.manifest.Response.JSON)
         // Закрываем чтение ответа
         resp.Body.Close()
-        // Вызываем конвертацию
-        api.err = api.manifest.Convertation()
-        if api.err != nil {
-    		return api.err
-    	}
         return nil
     }
     api.close = func() error {
