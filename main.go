@@ -70,7 +70,7 @@ func cmdTerminalExecute(command *packUI.Command) bool {
     name := command.Params[commands.CMD_TERMINAL_PARAM_NAME].Value
     entity := command.Params[commands.CMD_TERMINAL_PARAM_ENTITY].Value
     symbol := command.Params[commands.CMD_TERMINAL_PARAM_SYMBOL].Value
-    terminal := command.Controls["terminal"].(*market.Terminal)
+    terminal := frame.Controls["terminal"].(*market.Terminal)
     // frame.Log("on " + on + " name " + name + " entity " + entity + " symbol " + symbol)
     if (on != "" || off != "") && name != "" && entity != "" {
         var start bool
