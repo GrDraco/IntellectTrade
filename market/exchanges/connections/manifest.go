@@ -9,6 +9,7 @@ import (
     "time"
     "errors"
     "strings"
+    "reflect"
     "io/ioutil"
     "encoding/json"
     "github.com/satori/go.uuid"
@@ -18,70 +19,374 @@ import (
     "../../../utilities"
 )
 
-type ArrayValues struct {
-    Path []string             `json:"path"`
-    ValuesIsArray bool        `json:"values_is_array"`
-    ResponseIsArray bool      `json:"response_is_array"`
-    PathArray []int64         `json:"path_array"`
-    TypeValue string          `json:"type_value"`
-    DirectionValue int        `json:"direction_value"`
-    // Пути к значениям внутри масивов
-    ArrPrice []string         `json:"arr_price"`
-    ArrAmount []string        `json:"arr_amount"`
-    ArrVolume []string        `json:"arr_volume"`
-    ArrTimestamp []string     `json:"arr_timestamp"`
-    ArrOpen []string          `json:"arr_open"`
-    ArrClose []string         `json:"arr_close"`
-    ArrMin []string           `json:"arr_min"`
-    ArrMax []string           `json:"arr_max"`
-    ArrVolumeQuote []string   `json:"arr_volumeQuote"`
-
-    // Позиции значений в масиве
-    IndexType []int64         `json:"index_type"`
-    IndexPrice int64          `json:"index_price"`
-    IndexAmount int64         `json:"index_amount"`
-    IndexVolume int64         `json:"index_volume"`
-    IndexTimestamp int64      `json:"index_timestamp"`
-    IndexOpen int64           `json:"index_open"`
-    IndexClose int64          `json:"index_close"`
-    IndexMin int64            `json:"index_min"`
-    IndexMax int64            `json:"index_max"`
-    IndexVolumeQuote int64    `json:"index_volumeQuote"`
+type Path struct {
+    // Используется один из следующих
+    //или
+    Str []string        `json:"str"`            // Путь по именам
+    //или
+    Int []int64         `json:"int"`            // Путь по позициям в массиве
+    //или
+    SubValues []Value   `json:"sub_values"`     // Если значение имеет под уровни
 }
 
-type Values struct {
-    // Пути к значетиям
-    Ask []string             `json:"ask"`
-    Bid []string             `json:"bid"`
-    Volume []string          `json:"volume"`
-    Symbol []string          `json:"symbol"`
-    Timestamp []string       `json:"timestamp"`
-    Ping []string            `json:"ping"`
-    // Пути к данным с масивами
-    MixArray bool            `json:"mix_array"`
-    Asks ArrayValues         `json:"asks"`
-    Bids ArrayValues         `json:"bids"`
-    Candles ArrayValues      `json:"candles"`
+type Design struct {
+    // Тип определяющий тип данных значения
+    Kind reflect.Kind   `json:"kind"`           // 17-Array 6-int64 14-float64 24-string
+    Path []Path         `json:"path"`           // Путь к данным
+    Value Path          `json:"value"`          // Путь к значению если он пустой значит значение берется напрямую из пути Path
+    Check *Value        `json:"check"`
+    CheckInt int64      `json:"check_int"`      // Значение для сверки типа данных с полученными для цифры
+    CheckStr string     `json:"check_str"`      // Значение для сверки типа данных с полученными для строки
+}
+
+type Value struct {
+    Name string         `json:"name"`           //
+    Design Design       `json:"design"`         //
 }
 
 type Failed struct {
-    Message []string     `json:"message"`
-    Description []string `json:"description"`
+    Message []string     `json:"message"`       //
+    Description []string `json:"description"`   //
 }
 
 type Response struct {
-    SkipResponse int64  `json:"skip_response"`
-    Success []string    `json:"success"`
-    Failed Failed       `json:"failed"`
-    Values Values       `json:"values"`
-    Ping int64
+    Parent *Manifest
+    // Хранилище данных от биржи
     JSON interface{}
+    // Считываются из манифеста json
+    SkipResponse int64  `json:"skip_response"`  // Сколько надо пропустить запросов
+    Success []string    `json:"success"`        // Путь объекту наличее которого говорит о успешном получении данных
+    Failed Failed       `json:"failed"`         // Структура определения ошибок от биржи
+    Empty Value         `json:"empty"`          // Структура определения пустого ответа, указывает какое значение и где будет в ответе указывающие на пустой ответ
+    IsUpdates bool      `json:"is_updates"`     // Являются ли пришедшие данные обновлениями или они целостностные
+    // Values Values       `json:"values"`      //
+    Values []Value       `json:"values"`        // Это карта данных лежащих в JSON
+    // Рассчитываются в процессе обработки
+    Ping int64                                  // Пинг
+    Index int64                                 // Подсчет пришедших ответов
 }
 
-// type Value struct {
-//     Name string     `json:"name"`
-//     Path []string   `json:"path"`
-// }
+func (response *Response) skipResponse() (bool, error) {
+    var res bool
+    // Подсчитываем ответы
+    response.Index++
+    // Пропускаем если пришел пустой ответ
+    if response.Empty.Design.Kind == reflect.Int64 {
+        value, err := toInt64(response.JSON, response.Empty)
+        if err != nil {
+            return true, err
+        }
+        if value == response.Empty.Design.CheckInt {
+            res = true
+        }
+    }
+    // Пропускаем если указзаное количество по пропуску ен достигнуто
+    if response.Index <= response.SkipResponse {
+        res = true
+    }
+    if res {
+        // if response.Parent.ChMsg != nil {
+        //     message := core.NewMessage(response.Parent.Entity, strings.Replace(constants.MSG_CONNECTION_SKIP_RESPONSE, constants.MSG_PLACE_N, utilities.IntToString(response.Index), 1), "")
+        //     message.Exchange = response.Parent.Exchange
+        //     response.Parent.ChMsg<- message
+        // }
+        return true, nil
+    } else {
+        return false, nil
+    }
+}
+
+func (response *Response) ToError() error {
+    err := response.Parent.CheckError()
+    if err != nil {
+        return err
+    }
+    var value interface{}
+    saccess := true
+    if len(response.Success) > 0 {
+        value, err = utilities.GetValueByStr(response.JSON, response.Success)
+        if err != nil {
+            return err
+        }
+        if value == nil {
+            saccess = false
+        }
+    } else {
+        value, err = utilities.GetValueByStr(response.JSON, response.Failed.Message)
+        if err != nil {
+            return err
+        }
+        if value != nil {
+            saccess = false
+        }
+    }
+    if !saccess {
+        var description, message interface{}
+        message, err = utilities.GetValueByStr(response.JSON, response.Failed.Message)
+        if err != nil {
+            return err
+        }
+        if len(response.Failed.Description) > 0 {
+            description, err = utilities.GetValueByStr(response.JSON, response.Failed.Description)
+            if err != nil {
+                return err
+            }
+        }
+        msgFailed := core.NewError(response.Parent.Entity,
+            utilities.ToString(message),
+            utilities.ToString(description))
+
+        if msgFailed.Message != "" || msgFailed.Description != "" {
+            return errors.New("//-SERVER- " + msgFailed.Message + " " + msgFailed.Description + " -SERVER-//")
+        }
+    }
+    return nil
+}
+
+func (response *Response) ToSymbol(obj Value) (string, error) {
+    // Определяем тип данных
+    switch obj.Design.Kind {
+    case reflect.Int64:
+        // Получаем значение
+        value, err := toInt64(response.JSON, obj)
+        if err != nil {
+            return "", err
+        }
+        // Приводим к нуному типу
+        return clearSymbol(utilities.IntToString(value)), nil
+    case reflect.Float64:
+        // Получаем значение
+        value, err := toFloat64(response.JSON, obj)
+        if err != nil {
+            return "", err
+        }
+        // Приводим к нуному типу
+        return clearSymbol(utilities.FloatToString(value, 0)), nil
+    case reflect.String:
+        // Получаем значение
+        value, err := toString(response.JSON, obj)
+        if err != nil {
+            return "", err
+        }
+        // Приводим к нуному типу
+        return clearSymbol(value), nil
+    }
+    return "", nil
+}
+
+func (response *Response) ToTick() error {
+    signal := new(core.Signal)
+    err := response.ToError()
+    if err != nil {
+        return err
+    }
+    signal = &core.Signal {
+        Ping: response.Ping,
+        Connection: response.Parent.Name,
+        Exchange: response.Parent.Exchange,
+        Entity: constants.ENTITY_TICK,
+        Symbol: response.Parent.Request.ToSymbol(),
+        TimeRecd: time.Now(),
+        DataIsUpdates: response.IsUpdates }
+    tick := &core.Tick{}
+    for _, obj := range response.Values {
+        // Определяем тип данных
+        switch strings.ToLower(obj.Name) {
+        case OBJ_ASK:
+            tick.Ask, err = toFloat64(response.JSON, obj)
+        case OBJ_BID:
+            tick.Bid, err = toFloat64(response.JSON, obj)
+        case OBJ_VOLUME:
+            tick.Volume, err = toFloat64(response.JSON, obj)
+        case OBJ_SYMBOL:
+            tick.Symbol, err = toString(response.JSON, obj)
+        case OBJ_TIMESTAMP:
+            tick.Timestamp, err = toString(response.JSON, obj)
+        }
+        if err != nil {
+            return err
+        }
+    }
+    signal.Data = tick
+    if response.Parent.Provider == constants.CONNECTION_API {
+        if signal.Ping > response.Parent.TimeoutSignal {
+            signal.TimeOut = true
+        } else {
+            signal.TimeOut = false
+        }
+    }
+    response.Parent.ChSignal<-signal
+    return nil
+}
+
+func (response *Response) ToOrders(obj Value, symbol string) (map[float64]*core.Order, error) {
+    // Проверяем на тип данных
+    if obj.Design.Kind != reflect.Array {
+        return nil, errors.New("Mismatched type in ToOrders")
+    }
+    // Получаем массив значений
+    values, err := getValueByPath(response.JSON, obj.Design.Path)
+    if err != nil {
+        return nil, err
+    }
+    orders := make(map[float64]*core.Order)
+    for _, value := range values.([]interface{}) {
+        // Если данные не проходят проверку то пропускаем
+        var err error
+        var checked bool
+        if obj.Design.Check != nil {
+            checked, err = isChecked(value, *obj.Design.Check)
+            if err != nil {
+                return nil, err
+            }
+        } else {
+            checked = true
+        }
+        if !checked {
+            continue
+        }
+        // Получаем значение
+        order := &core.Order {}
+        for _, valPath := range obj.Design.Value.SubValues {
+            switch strings.ToLower(valPath.Name) {
+            case OBJ_PRICE:
+                order.Price, err = toFloat64(value, valPath)
+            case OBJ_AMOUNT:
+                order.Amount, err = toFloat64(value, valPath)
+            }
+            if err != nil {
+                return nil, err
+            }
+        }
+        order.Symbol = symbol
+        orders[order.Price] = order
+    }
+    return orders, nil
+}
+
+func (response *Response) ToDepth() error {
+    signal := new(core.Signal)
+    var err error
+    err = response.ToError()
+    if err != nil {
+        return err
+    }
+    signal = &core.Signal {
+        Ping: response.Ping,
+        Connection: response.Parent.Name,
+        Exchange: response.Parent.Exchange,
+        Entity: constants.ENTITY_DEPTH,
+        Symbol: response.Parent.Request.ToSymbol(),
+        TimeRecd: time.Now(),
+        DataIsUpdates: response.IsUpdates }
+    signal.Data = new(core.Depth)
+    for _, obj := range response.Values {
+        // Определяем тип данных
+        switch strings.ToLower(obj.Name) {
+        case OBJ_ASKS:
+            signal.Data.(*core.Depth).Asks, err = response.ToOrders(obj, signal.Symbol)
+        case OBJ_BIDS:
+            signal.Data.(*core.Depth).Bids, err = response.ToOrders(obj, signal.Symbol)
+        }
+        // fmt.Println(signal.Data)
+        if err != nil {
+            return err
+        }
+    }
+    ///////
+    if response.Parent.Provider == constants.CONNECTION_API {
+        if signal.Ping > response.Parent.TimeoutSignal {
+            signal.TimeOut = true
+        } else {
+            signal.TimeOut = false
+        }
+    }
+    response.Parent.ChSignal<-signal
+    return nil
+}
+
+func (response *Response) ToCandles() error  {
+    signal := new(core.Signal)
+    err := response.ToError()
+    if err != nil {
+        return err
+    }
+    signal = &core.Signal {
+        Ping: response.Ping,
+        Connection: response.Parent.Name,
+        Exchange: response.Parent.Exchange,
+        Entity: constants.ENTITY_CANDLE,
+        Symbol: response.Parent.Request.ToSymbol(),
+        TimeRecd: time.Now(),
+        DataIsUpdates: response.IsUpdates }
+    candles := make([]*core.Candle, 0)
+    for _, obj := range response.Values {
+        // Определяем тип данных
+        if strings.ToLower(obj.Name) == OBJ_CANDLES {
+            // Проверяем на тип данных
+            if obj.Design.Kind != reflect.Array {
+                return errors.New("Mismatched type in ToCandles")
+            }
+            // Получаем массив значений
+            values, err := getValueByPath(response.JSON, obj.Design.Path)
+            if err != nil {
+                return err
+            }
+            for _, value := range values.([]interface{}) {
+                // Если данные не проходят проверку то пропускаем
+                var err error
+                var checked bool
+                if obj.Design.Check != nil {
+                    checked, err = isChecked(value, *obj.Design.Check)
+                    if err != nil {
+                        return err
+                    }
+                } else {
+                    checked = true
+                }
+                if !checked {
+                    continue
+                }
+                // Получаем значение
+                candle := &core.Candle {}
+                for _, valPath := range obj.Design.Value.SubValues {
+                    switch strings.ToLower(valPath.Name) {
+                    case OBJ_OPEN:
+                        candle.Open, err = toFloat64(value, valPath)
+                    case OBJ_CLOSE:
+                        candle.Close, err = toFloat64(value, valPath)
+                    case OBJ_MIN:
+                        candle.Min, err = toFloat64(value, valPath)
+                    case OBJ_MAX:
+                        candle.Max, err = toFloat64(value, valPath)
+                    case OBJ_VOLUME:
+                        candle.Volume, err = toFloat64(value, valPath)
+                    case OBJ_VOLUMEQUOTE:
+                        candle.VolumeQuote, err = toFloat64(value, valPath)
+                    case OBJ_TIMESTAMP:
+                        candle.Timestamp, err = toString(value, valPath)
+                    }
+                    if err != nil {
+                        return err
+                    }
+                }
+                candle.Symbol = signal.Symbol
+                candles = append(candles, candle)
+            }
+        }
+    }
+    signal.Data = candles
+    ///////
+    if response.Parent.Provider == constants.CONNECTION_API {
+        if signal.Ping > response.Parent.TimeoutSignal {
+            signal.TimeOut = true
+        } else {
+            signal.TimeOut = false
+        }
+    }
+    response.Parent.ChSignal<-signal
+    return nil
+}
 
 const (
     PERIOD_SECONDS = "s"
@@ -89,7 +394,37 @@ const (
     PERIOD_HOURS = "h"
     PERIOD_DAY = "d"
     PERIOD_WEEKLY = "w"
+
+    OBJ_ASKS = "asks"
+    OBJ_BIDS = "bids"
+    OBJ_CANDLES = "candles"
+    OBJ_TICK = "tick"
+
+    OBJ_BID = "bid"
+    OBJ_ASK = "ask"
+    OBJ_PRICE = "price"
+    OBJ_AMOUNT = "amount"
+    OBJ_SYMBOL = "symbol"
+    OBJ_TIMESTAMP = "timestamp"
+    OBJ_OPEN = "open"
+    OBJ_CLOSE = "close"
+    OBJ_MIN = "min"
+    OBJ_MAX = "max"
+    OBJ_VOLUME = "volume"
+    OBJ_VOLUMEQUOTE = "volumequote"
 )
+
+type Request struct {
+    SymbolField string   `json:"symbol_field"`
+    Regular bool         `json:"regular"`
+    Timing float64       `json:"timing"`
+    TimingUnit string    `json:"timing_unit"` //s,m,h,d,w
+    JSON interface{}     `json:"json"`
+}
+
+func (request *Request) ToSymbol() string {
+    return clearSymbol(utilities.ToString(utilities.SearchValue(request.JSON, (request.SymbolField))))
+}
 
 type Manifest struct {
     // Задается пользователем
@@ -99,13 +434,8 @@ type Manifest struct {
     Entity string               `json:"entity"`
     URL string                  `json:"url"`
     Origin string               `json:"origin"`
-    RequestSymbolField string   `json:"request_sumbol_field"`
-    RequestJSON interface{}     `json:"request_json"`
+    Request Request             `json:"request"`
     Response Response           `json:"response"`
-    Regular bool                `json:"regular"`
-    DataIsUpdates bool          `json:"data_is_updates"`
-    Timing float64              `json:"timing"`
-    TimingUnit string           `json:"timing_unit"` //s,m,h,d,w
     // Инициализируется дополнительно
     Id string
     // Каналы для передачи данных
@@ -130,6 +460,8 @@ func (manifest *Manifest) Init() {
     manifest.Provider = strings.ToLower(manifest.Provider)
     manifest.TimeoutSignal = 200
     manifest.TimeoutEntity = 5
+    manifest.Response.Parent = manifest
+    manifest.Response.Index = 0
     var json interface{}
     // Инициализируем переменую куда будет записыватся ответ от биржи
     manifest.Response.JSON = json
@@ -172,23 +504,23 @@ func (manifest *Manifest) Init() {
 }
 
 func (manifest *Manifest) IsTiming(started time.Time) bool {
-    if manifest.TimingUnit == "" {
+    if manifest.Request.TimingUnit == "" {
         return true
     }
-    if manifest.Timing == 0 {
+    if manifest.Request.Timing == 0 {
         return true
     }
-    switch manifest.TimingUnit {
+    switch manifest.Request.TimingUnit {
     case PERIOD_SECONDS:
-        return time.Now().Sub(started).Seconds() >= manifest.Timing
+        return time.Now().Sub(started).Seconds() >= manifest.Request.Timing
     case PERIOD_MINUTES:
-        return time.Now().Sub(started).Minutes() >= manifest.Timing
+        return time.Now().Sub(started).Minutes() >= manifest.Request.Timing
     case PERIOD_HOURS:
-        return time.Now().Sub(started).Hours() >= manifest.Timing
+        return time.Now().Sub(started).Hours() >= manifest.Request.Timing
     case PERIOD_DAY:
-        return time.Now().Sub(started).Hours() >= manifest.Timing * 24
+        return time.Now().Sub(started).Hours() >= manifest.Request.Timing * 24
     case PERIOD_WEEKLY:
-        return time.Now().Sub(started).Hours() >= manifest.Timing * 24 * 7
+        return time.Now().Sub(started).Hours() >= manifest.Request.Timing * 24 * 7
     default: return true
     }
 }
@@ -196,208 +528,149 @@ func (manifest *Manifest) IsTiming(started time.Time) bool {
 // Инициализируем функцию приведения данных к общему виду
 func (manifest *Manifest) Convertation() error {
     // manifest.TimeRecd = time.Now()
+    // Пропускаем ответы в кол-ве указанном в манифесте
+    skip, err := manifest.Response.skipResponse()
+    if err != nil {
+        return err
+    }
+    if skip {
+        return nil
+    }
     // В зависимости от запрашиваемой сущности вызываем соответсвующую конвертацию
     switch manifest.Entity {
     case constants.ENTITY_TICK:
-        return manifest.ConvertToTick()
+        return manifest.Response.ToTick()
     case constants.ENTITY_DEPTH:
-        return manifest.ConvertToDepth()
+        return manifest.Response.ToDepth()
     case constants.ENTITY_CANDLE:
-        return manifest.ConvertToCandle()
+        return manifest.Response.ToCandles()
     }
     return nil
 }
 
-func (manifest *Manifest) ConvertError() error {
+func (manifest *Manifest) CheckError() error {
     if manifest.Id == "" || manifest.Entity == "" || manifest.Response.JSON == nil || manifest.Convertation == nil {
         return errors.New("Manifest is not initialization")
     }
     if manifest.Response.JSON == nil {
         return errors.New("Incoming response.JSON is nil")
     }
-    return nil
-}
-
-func (manifest *Manifest) ConvertToError() error {
-    err := manifest.ConvertError()
-    if err != nil {
-        return err
+    if manifest.Response.Values == nil {
+        return errors.New("In manifest Values is nil")
     }
-    if utilities.GetValue(manifest.Response.JSON, manifest.Response.Success) != nil {
-        return nil
+    if len(manifest.Response.Values) == 0 {
+        return errors.New("In manifest count of Values is 0")
     }
-    msgFailed := core.NewError(manifest.Entity,
-                              utilities.ToString(utilities.GetValue(manifest.Response.JSON, manifest.Response.Failed.Message)),
-                              utilities.ToString(utilities.GetValue(manifest.Response.JSON, manifest.Response.Failed.Description)))
-
-    if msgFailed.Message != "" || msgFailed.Description != "" {
-        return errors.New(msgFailed.Message + " " + msgFailed.Description)
-    }
-    return nil
-}
-
-func (manifest *Manifest) ConvertToTick() error {
-    signal := new(core.Signal)
-    err := manifest.ConvertToError()
-    if err != nil {
-        return err
-    }
-    signal = &core.Signal {
-        Ping: manifest.Response.Ping,
-        Connection: manifest.Name,
-        Exchange: manifest.Exchange,
-        Entity: constants.ENTITY_TICK,
-        Symbol: clearSymbol(utilities.ToString(utilities.GetValue(manifest.Response.JSON, manifest.Response.Values.Symbol))),
-        TimeRecd: time.Now(),
-        DataIsUpdates: manifest.DataIsUpdates }
-    signal.Data = &core.Tick {
-        Ask: utilities.ToFloat(utilities.GetValue(manifest.Response.JSON, manifest.Response.Values.Ask)),
-        Bid: utilities.ToFloat(utilities.GetValue(manifest.Response.JSON, manifest.Response.Values.Bid)),
-        Volume: utilities.ToFloat(utilities.GetValue(manifest.Response.JSON, manifest.Response.Values.Volume)) }
-    if manifest.Provider == constants.CONNECTION_API {
-        if signal.Ping > manifest.TimeoutSignal {
-            signal.TimeOut = true
-        } else {
-            signal.TimeOut = false
+    for _, value := range manifest.Response.Values {
+        if value.Name == "" {
+            return errors.New("In manifest Name of Values is empty")
+        }
+        // if value.Design == nil {
+        //     return errors.New("In manifest [" + value.Name + "]: Design is nil")
+        // }
+        if value.Design.Kind == 0 {
+            return errors.New("In manifest [" + value.Name + "]: Design.Kind is 0")
         }
     }
-    manifest.ChSignal<-signal
     return nil
 }
 
-func (manifest *Manifest) ConvertToDepth() error {
-    // fmt.Println(manifest.Response.JSON)
-    signal := new(core.Signal)
-    err := manifest.ConvertToError()
-    if err != nil {
-        return err
+func getValueByPath(data interface{}, paths []Path) (res interface{}, err error) {
+    res = data
+    for _, path := range paths {
+        if len(path.Int) > 0 {
+            res, err = utilities.GetValueByInt(res, path.Int)
+            if err != nil {
+                return
+            }
+        } else {
+            if len(path.Str) > 0 {
+                res, err = utilities.GetValueByStr(res, path.Str)
+                if err != nil {
+                    return
+                }
+            }
+        }
     }
-    signal = &core.Signal {
-        Ping: manifest.Response.Ping,
-        Connection: manifest.Name,
-        Exchange: manifest.Exchange,
-        Entity: constants.ENTITY_DEPTH,
-        Symbol: clearSymbol(utilities.ToString(utilities.SearchValue(manifest.RequestJSON, "symbol"))),
-        TimeRecd: time.Now(),
-        DataIsUpdates: manifest.DataIsUpdates }
-    depth := new(core.Depth)
-    depth.Asks = make(map[float64]*core.Order)
-    // fmt.Println("method", utilities.SearchValue(manifest.RequestJSON, "method"))
-    // В зависимости в каком вмде данные обрабатываем
-    if manifest.Response.Values.MixArray {
-        // Данные в многоуровневом массиве
-    } else {
-        // Данные в массиве находящийся в JSON
-        // Asks
-        arrAsk := utilities.GetValue(manifest.Response.JSON, manifest.Response.Values.Asks.Path)
-        if arrAsk != nil {
-            if manifest.Response.Values.Asks.ValuesIsArray {
-                for i := 0; i < len(arrAsk.([]interface{})); i++ {
-                    depth.Asks[utilities.ToFloat(arrAsk.([]interface{})[i].([]interface{})[manifest.Response.Values.Asks.IndexPrice])] = &core.Order {
-                        Price: utilities.ToFloat(arrAsk.([]interface{})[i].([]interface{})[manifest.Response.Values.Asks.IndexPrice]),
-                        Amount: utilities.ToFloat(arrAsk.([]interface{})[i].([]interface{})[manifest.Response.Values.Asks.IndexAmount]),
-                        Volume: utilities.ToFloat(arrAsk.([]interface{})[i].([]interface{})[manifest.Response.Values.Asks.IndexVolume])}
+    return
+}
+
+func isChecked(data interface{}, check Value) (bool, error) {
+    if data != nil {
+        switch check.Design.Kind {
+        case reflect.String:
+            value, err := toString(data, check)
+            if err != nil {
+                return false, err
+            }
+            if value != check.Design.CheckStr {
+                return false, nil
+            }
+        case reflect.Int64:
+            value, err := toInt64(data, check)
+            if err != nil {
+                return false, err
+            }
+            if value != check.Design.CheckInt {
+                return false, nil
+            }
+        }
+    }
+    return true, nil
+}
+
+func toString(data interface{}, obj Value) (string, error) {
+    if obj.Design.Kind != reflect.String {
+        return "", errors.New("Mismatched type in ToString")
+    }
+    if len(obj.Design.Path) > 0 {
+        var err error
+        for _, path := range obj.Design.Path {
+            if len(path.Int) > 0 {
+                data, err = utilities.GetValueByInt(data, path.Int)
+                if err != nil {
+                    return "", err
                 }
             } else {
-                for i := 0; i < len(arrAsk.([]interface{})); i++ {
-                    price := utilities.ToFloat(utilities.GetValue(arrAsk.([]interface{})[i], manifest.Response.Values.Asks.ArrPrice))
-                    depth.Asks[price] = &core.Order {
-                        Price: price,
-                        Amount: utilities.ToFloat(utilities.GetValue(arrAsk.([]interface{})[i], manifest.Response.Values.Asks.ArrAmount)),
-                        Volume: utilities.ToFloat(utilities.GetValue(arrAsk.([]interface{})[i], manifest.Response.Values.Asks.ArrVolume))}
+                if len(path.Str) > 0 {
+                    data, err = utilities.GetValueByStr(data, path.Str)
+                    if err != nil {
+                        return "", err
+                    }
                 }
             }
         }
-        depth.Bids = make(map[float64]*core.Order)
-        // Bids
-        arrBid := utilities.GetValue(manifest.Response.JSON, manifest.Response.Values.Bids.Path)
-        if arrBid != nil {
-            if manifest.Response.Values.Bids.ValuesIsArray {
-                for i := 0; i < len(arrBid.([]interface{})); i++ {
-                    depth.Bids[utilities.ToFloat(arrBid.([]interface{})[i].([]interface{})[manifest.Response.Values.Bids.IndexPrice])] = &core.Order {
-                        Price: utilities.ToFloat(arrBid.([]interface{})[i].([]interface{})[manifest.Response.Values.Bids.IndexPrice]),
-                        Amount: utilities.ToFloat(arrBid.([]interface{})[i].([]interface{})[manifest.Response.Values.Bids.IndexAmount]),
-                        Volume: utilities.ToFloat(arrBid.([]interface{})[i].([]interface{})[manifest.Response.Values.Bids.IndexVolume])}
-                }
-            } else {
-                for i := 0; i < len(arrBid.([]interface{})); i++ {
-                    price := utilities.ToFloat(utilities.GetValue(arrBid.([]interface{})[i], manifest.Response.Values.Bids.ArrPrice))
-                    depth.Bids[price] = &core.Order {
-                        Price: price,
-                        Amount: utilities.ToFloat(utilities.GetValue(arrBid.([]interface{})[i], manifest.Response.Values.Bids.ArrAmount)),
-                        Volume: utilities.ToFloat(utilities.GetValue(arrBid.([]interface{})[i], manifest.Response.Values.Bids.ArrVolume))}
-                }
-            }
-        }
+        return utilities.ToString(data), nil
     }
-    signal.Data = depth
-    ///////
-    if manifest.Provider == constants.CONNECTION_API {
-        if signal.Ping > manifest.TimeoutSignal {
-            signal.TimeOut = true
-        } else {
-            signal.TimeOut = false
-        }
-    }
-    manifest.ChSignal<-signal
-    return nil
+    return "", nil
 }
 
-func (manifest *Manifest) ConvertToCandle() error  {
-    signal := new(core.Signal)
-    err := manifest.ConvertToError()
+func toFloat64(data interface{}, obj Value) (float64, error) {
+    // Проверяем на тип данных
+    if obj.Design.Kind != reflect.Float64 {
+        return 0, errors.New("Mismatched type in ToFloat64")
+    }
+    // Получаем значение
+    value, err := getValueByPath(data, obj.Design.Path)
     if err != nil {
-        return err
+        return 0, err
     }
-    signal = &core.Signal {
-        Ping: manifest.Response.Ping,
-        Connection: manifest.Name,
-        Exchange: manifest.Exchange,
-        Entity: constants.ENTITY_CANDLE,
-        Symbol: clearSymbol(utilities.ToString(utilities.SearchValue(manifest.RequestJSON, "symbol"))),
-        TimeRecd: time.Now(),
-        DataIsUpdates: manifest.DataIsUpdates }
-    candles := make([]*core.Candle, 0)
-    var arr interface{}
-    if len(manifest.Response.Values.Candles.Path) > 0 {
-        arr = utilities.GetValue(manifest.Response.JSON, manifest.Response.Values.Candles.Path)
-    } else {
-        arr = manifest.Response.JSON
+    // Приводим к нуному типу
+    return utilities.ToFloat(value), nil
+}
+
+func toInt64(data interface{}, obj Value) (int64, error) {
+    // Проверяем на тип данных
+    if obj.Design.Kind != reflect.Int64 {
+        return 0, errors.New("Mismatched type in ToInt64")
     }
-    if arr != nil {
-        if manifest.Response.Values.Candles.ValuesIsArray {
-            for i := 0; i < len(arr.([]interface{})); i++ {
-                candles = append(candles, &core.Candle {
-                    Open: utilities.ToFloat(arr.([]interface{})[i].([]interface{})[manifest.Response.Values.Candles.IndexOpen]),
-                    Close: utilities.ToFloat(arr.([]interface{})[i].([]interface{})[manifest.Response.Values.Candles.IndexClose]),
-                    Min: utilities.ToFloat(arr.([]interface{})[i].([]interface{})[manifest.Response.Values.Candles.IndexMin]),
-                    Max: utilities.ToFloat(arr.([]interface{})[i].([]interface{})[manifest.Response.Values.Candles.IndexMax]),
-                    Volume: utilities.ToFloat(arr.([]interface{})[i].([]interface{})[manifest.Response.Values.Candles.IndexVolume]),
-                    VolumeQuote: utilities.ToFloat(arr.([]interface{})[i].([]interface{})[manifest.Response.Values.Candles.IndexVolumeQuote]) })
-            }
-        } else {
-            for i := 0; i < len(arr.([]interface{})); i++ {
-                candles = append(candles, &core.Candle {
-                    Open: utilities.ToFloat(utilities.GetValue(arr.([]interface{})[i], manifest.Response.Values.Candles.ArrOpen)),
-                    Close: utilities.ToFloat(utilities.GetValue(arr.([]interface{})[i], manifest.Response.Values.Candles.ArrClose)),
-                    Min: utilities.ToFloat(utilities.GetValue(arr.([]interface{})[i], manifest.Response.Values.Candles.ArrMin)),
-                    Max: utilities.ToFloat(utilities.GetValue(arr.([]interface{})[i], manifest.Response.Values.Candles.ArrMax)),
-                    Volume: utilities.ToFloat(utilities.GetValue(arr.([]interface{})[i], manifest.Response.Values.Candles.ArrVolume)),
-                    VolumeQuote: utilities.ToFloat(utilities.GetValue(arr.([]interface{})[i], manifest.Response.Values.Candles.ArrVolumeQuote)) })
-            }
-        }
+    // Получаем значение
+    value, err := getValueByPath(data, obj.Design.Path)
+    if err != nil {
+        return 0, err
     }
-    signal.Data = candles
-    ///////
-    if manifest.Provider == constants.CONNECTION_API {
-        if signal.Ping > manifest.TimeoutSignal {
-            signal.TimeOut = true
-        } else {
-            signal.TimeOut = false
-        }
-    }
-    manifest.ChSignal<-signal
-    return nil
+    // Приводим к нуному типу
+    return utilities.ToInt(value), nil
 }
 
 func clearSymbol(symbol string) string {

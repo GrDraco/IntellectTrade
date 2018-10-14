@@ -44,6 +44,9 @@ func ToInt(value interface{}) int64 {
     if reflect.TypeOf(value).Kind() == reflect.Int64 {
         return value.(int64)
     }
+    if reflect.TypeOf(value).Kind() == reflect.Float64 {
+        return int64(value.(float64))
+    }
     return 0
 }
 func ToFloat(value interface{}) float64 {
@@ -61,6 +64,9 @@ func ToFloat(value interface{}) float64 {
     }
     if reflect.TypeOf(value).Kind() == reflect.Float64 {
         return value.(float64)
+    }
+    if reflect.TypeOf(value).Kind() == reflect.Int64 {
+        return float64(value.(int64))
     }
     return 0
 }

@@ -17,7 +17,7 @@ type WSocket struct {
     socket *websocket.Conn
     err error
 }
-//SET wSocket.manifest.RequestJSON = utilities.ReplaceValues(wSocket.manifest.RequestJSON, data[0])
+//SET wSocket.manifest.Request.JSON = utilities.ReplaceValues(wSocket.manifest.Request.JSON, data[0])
 func NewWSocket(manifest *Manifest) *WSocket {
     // Выделение памяти под сокет
     wSocket := &WSocket {}
@@ -29,14 +29,14 @@ func NewWSocket(manifest *Manifest) *WSocket {
             return wSocket.err
         }
         // Отправляем по сокету данные
-        wSocket.err = websocket.JSON.Send(wSocket.socket, wSocket.manifest.RequestJSON)
+        wSocket.err = websocket.JSON.Send(wSocket.socket, wSocket.manifest.Request.JSON)
         if wSocket.err != nil {
             return wSocket.err
         }
         // params := make(map[string]interface{})
         // params["method"] = "snapshotOrderbook"
-        // wSocket.manifest.RequestJSON = utilities.ReplaceValues(wSocket.manifest.RequestJSON, params)
-        // wSocket.err = websocket.JSON.Send(wSocket.socket, wSocket.manifest.RequestJSON)
+        // wSocket.manifest.Request.JSON = utilities.ReplaceValues(wSocket.manifest.Request.JSON, params)
+        // wSocket.err = websocket.JSON.Send(wSocket.socket, wSocket.manifest.Request.JSON)
         // if wSocket.err != nil {
         //     return wSocket.err
         // }

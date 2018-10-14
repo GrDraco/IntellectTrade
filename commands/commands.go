@@ -68,6 +68,12 @@ const (
                                     TEXT_SEPARATOR_CMD_PARAM + CMD_TERMINAL_PARAM_ENTITY + TEXT_SEPARATOR_CMD_PARAM_VALUE + "тип_сигнала"
     CMD_TERMINAL_PARAM_OFF_ISFLAG = true
     CMD_TERMINAL_PARAM_OFF_ALLOWED_EMPTY = false
+    // EXAMPLE terminal --name:название_биржи --entity:тип_сигнала --symbol:торговая_пара
+    CMD_TERMINAL_PARAM_NAME = "name"
+    CMD_TERMINAL_PARAM_NAME_DISCRIPTION = "Сипользуется в связке с другими параметрами, передает название биржи"
+    CMD_TERMINAL_PARAM_NAME_EXAMPLE = "... " + TEXT_SEPARATOR_CMD_PARAM + CMD_TERMINAL_PARAM_NAME + TEXT_SEPARATOR_CMD_PARAM_VALUE + "название_биржи ..."
+    CMD_TERMINAL_PARAM_NAME_ISFLAG = false
+    CMD_TERMINAL_PARAM_NAME_ALLOWED_EMPTY = false
     //
     CMD_TERMINAL_PARAM_ENTITY = "entity"
     CMD_TERMINAL_PARAM_ENTITY_DISCRIPTION = "Сипользуется в связке с другими параметрами, передает название сигнала"
@@ -75,19 +81,29 @@ const (
     CMD_TERMINAL_PARAM_ENTITY_ISFLAG = false
     CMD_TERMINAL_PARAM_ENTITY_ALLOWED_EMPTY = false
     //
+    CMD_TERMINAL_PARAM_PROVIDER = "provider"
+    CMD_TERMINAL_PARAM_PROVIDER_DISCRIPTION = "Сипользуется в связке с другими параметрами, передает название провайдера (api или websocket)"
+    CMD_TERMINAL_PARAM_PROVIDER_EXAMPLE = "... " + TEXT_SEPARATOR_CMD_PARAM + CMD_TERMINAL_PARAM_PROVIDER + TEXT_SEPARATOR_CMD_PARAM_VALUE + "провайдер ..."
+    CMD_TERMINAL_PARAM_PROVIDER_ISFLAG = false
+    CMD_TERMINAL_PARAM_PROVIDER_ALLOWED_EMPTY = false
+    //
     CMD_TERMINAL_PARAM_SYMBOL = "symbol"
-    CMD_TERMINAL_PARAM_SYMBOL_DISCRIPTION = "Параметр активирования зевчения торговой пары"
-    CMD_TERMINAL_PARAM_SYMBOL_EXAMPLE = TERMINAL_TEXT_START_CMD + TEXT_SEPARATOR_CMD_PARAM + CMD_TERMINAL_PARAM_NAME + TEXT_SEPARATOR_CMD_PARAM_VALUE + "название_биржи " +
-                                      TEXT_SEPARATOR_CMD_PARAM + CMD_TERMINAL_PARAM_ENTITY + TEXT_SEPARATOR_CMD_PARAM_VALUE + "тип_сигнала " +
-                                      TEXT_SEPARATOR_CMD_PARAM + CMD_TERMINAL_PARAM_SYMBOL + TEXT_SEPARATOR_CMD_PARAM_VALUE + "орговая_пара"
+    CMD_TERMINAL_PARAM_SYMBOL_DISCRIPTION = "Параметр активирования значения торговой пары"
+    CMD_TERMINAL_PARAM_SYMBOL_EXAMPLE = "... " + TEXT_SEPARATOR_CMD_PARAM + CMD_TERMINAL_PARAM_SYMBOL + TEXT_SEPARATOR_CMD_PARAM_VALUE + "орговая_пара ..."
     CMD_TERMINAL_PARAM_SYMBOL_ISFLAG = false
     CMD_TERMINAL_PARAM_SYMBOL_ALLOWED_EMPTY = false
-    // EXAMPLE terminal --name:название_биржи --entity:тип_сигнала --symbol:торговая_пара
-    CMD_TERMINAL_PARAM_NAME = "name"
-    CMD_TERMINAL_PARAM_NAME_DISCRIPTION = "Сипользуется в связке с другими параметрами, передает название биржи"
-    CMD_TERMINAL_PARAM_NAME_EXAMPLE = "... " + TEXT_SEPARATOR_CMD_PARAM + CMD_TERMINAL_PARAM_NAME + TEXT_SEPARATOR_CMD_PARAM_VALUE + "название_биржи ..."
-    CMD_TERMINAL_PARAM_NAME_ISFLAG = false
-    CMD_TERMINAL_PARAM_NAME_ALLOWED_EMPTY = false
+    //
+    CMD_TERMINAL_PARAM_PARAM = "param"
+    CMD_TERMINAL_PARAM_PARAM_DISCRIPTION = "Параметр указания названия параметра биржи к которому необходимо установить значение, работаетв связке с " + CMD_TERMINAL_PARAM_VALUE
+    CMD_TERMINAL_PARAM_PARAM_EXAMPLE = "... " + TEXT_SEPARATOR_CMD_PARAM + CMD_TERMINAL_PARAM_PARAM + TEXT_SEPARATOR_CMD_PARAM_VALUE + "название_параметра ..."
+    CMD_TERMINAL_PARAM_PARAM_ISFLAG = false
+    CMD_TERMINAL_PARAM_PARAM_ALLOWED_EMPTY = false
+    //
+    CMD_TERMINAL_PARAM_VALUE = "value"
+    CMD_TERMINAL_PARAM_VALUE_DISCRIPTION = "Параметр для указания значения параметра биржи, работаетв связке с " + CMD_TERMINAL_PARAM_PARAM
+    CMD_TERMINAL_PARAM_VALUE_EXAMPLE = "... " + TEXT_SEPARATOR_CMD_PARAM + CMD_TERMINAL_PARAM_VALUE + TEXT_SEPARATOR_CMD_PARAM_VALUE + "орговая_пара ..."
+    CMD_TERMINAL_PARAM_VALUE_ISFLAG = false
+    CMD_TERMINAL_PARAM_VALUE_ALLOWED_EMPTY = false
 
     // CMD settings
     CMD_SETTINGS = "settings"
@@ -200,21 +216,46 @@ const (
     CMD_APP_PARAM_REDRAW_ALLOWED_EMPTY = false
 )
 /*
+    zil
+    hitbtc
+        public ae143ae169b51a19397f8eb74fe1f2ad
+        secret c950c636c4bbc2c39010b3c4d67e02d5
+    kucoin
+        public 5bae0b91857b8732588c650f
+        secret 31bf1a3-b53a-4832-8d28-1af254bfb1e8
+
     app redraw
-    terminal --name:kucoin --entity:tick --symbol:BTC-USDT
-    terminal --on --name:kucoin --entity:tick
 
-    terminal --name:kucoin --entity:depth --symbol:BTC-USDT
-    terminal --on --name:kucoin --entity:depth
+    terminal --name:kucoin --entity:tick --provider:api --symbol:BTC-USDT
+    terminal --on --name:kucoin --entity:tick --provider:api
 
-    terminal --name:hitbtc --entity:tick --symbol:ETHBTC
-    terminal --on --name:hitbtc --entity:tick
+    terminal --name:kucoin --entity:depth --provider:api --symbol:BTC-USDT
+    terminal --on --name:kucoin --entity:depth --provider:api
 
-    terminal --name:hitbtc --entity:depth --symbol:ETHBTC
-    terminal --on --name:hitbtc --entity:depth
+    terminal --name:kucoin --entity:candle --provider:api --symbol:BTC-USDT
+    terminal --name:kucoin --entity:candle --provider:api --param:type --value:0
+    terminal --name:kucoin --entity:candle --provider:api --param:from --value:1539411100
+    terminal --name:kucoin --entity:candle --provider:api --param:to --value:9999999999
+    terminal --name:kucoin --entity:candle --provider:api --param:limit --value:0
+    terminal --on --name:kucoin --entity:candle --provider:api
 
-    terminal --name:hitbtc --entity:candle --symbol:ETHBTC
-    terminal --on --name:hitbtc --entity:candle
+    terminal --name:hitbtc --entity:tick --provider:websocket --symbol:ETHBTC
+    terminal --on --name:hitbtc --entity:tick --provider:websocket
+
+    terminal --name:hitbtc --entity:depth --provider:websocket --symbol:ETHBTC
+    terminal --on --name:hitbtc --entity:depth --provider:websocket
+
+    terminal --name:hitbtc --entity:candle --provider:websocket --symbol:ETHBTC
+    terminal --on --name:hitbtc --entity:candle --provider:websocket
+
+    terminal --name:poloniex --entity:depth --provider:websocket --symbol:BTC_BTS
+    terminal --on --name:poloniex --entity:depth --provider:websocket
+
+    terminal --name:poloniex --entity:candle --provider:api --symbol:BTC_BTS
+    terminal --name:poloniex --entity:candle --provider:api --param:start --value:1539411100
+    terminal --name:poloniex --entity:candle --provider:api --param:end --value:1111111111
+    terminal --name:poloniex --entity:candle --provider:api --param:period --value:300
+    terminal --on --name:poloniex --entity:candle --provider:api
 
     strategy --name:arbitrage --on
     strategy --name:arbitrage --off

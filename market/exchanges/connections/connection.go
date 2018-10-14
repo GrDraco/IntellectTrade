@@ -10,7 +10,6 @@ import (
     // "fmt"
     "time"
     "strings"
-    "strconv"
     "runtime"
     "../../core"
     "../../constants"
@@ -38,7 +37,6 @@ type BaseConnection struct {
     // Свойства
     manifest *Manifest
     timeout float64
-    iResponse int64
     // Флаги
     fWorking bool
     fNewValues bool
@@ -77,7 +75,7 @@ func (connection *BaseConnection) activate(manifest *Manifest) bool {
     connection.fNewValues = false
     connection.fSuccessStart = false
     connection.fSuccessStop = false
-    connection.iResponse = 0
+    connection.manifest.Response.Index = 0
     // Запускаем горутину
     finishActivate := false
     go func() {
@@ -100,7 +98,7 @@ func (connection *BaseConnection) activate(manifest *Manifest) bool {
                         connection.fNewValues = false
                         connection.createError(err.Error())
                     } else {
-                        params := utilities.ValuesToString(utilities.GetValues(connection.manifest.RequestJSON))
+                        params := utilities.ValuesToString(utilities.GetValues(connection.manifest.Request.JSON))
                         connection.createLog(strings.Replace(constants.MSG_SET_PARAMS, constants.MSG_PLACE_PARAMS, params, 1))
                         connection.fNewValues = false
                     }
@@ -117,26 +115,17 @@ func (connection *BaseConnection) activate(manifest *Manifest) bool {
                             connection.createError(err.Error())
                             } else {
                                 // Вызываем конвертацию
-                                var convErr error
-                                // Пропускаем ответы в кол-уе указанном в манифесте
-                                connection.iResponse++
-                                if connection.iResponse > connection.manifest.Response.SkipResponse {
-                                    if convErr = connection.manifest.Convertation(); convErr != nil {
-                                		connection.createError(convErr.Error())
-                                	}
-                                } else {
-                                    connection.createLog(strings.Replace(constants.MSG_CONNECTION_SKIP_RESPONSE, constants.MSG_PLACE_N, strconv.FormatInt(connection.iResponse, 10), 1))
+                                if err := connection.manifest.Convertation(); err != nil {
+                            		connection.createError(err.Error())
                                 }
-                                if convErr == nil {
-                                    connection.manifest.Response.Ping = time.Now().Sub(started).Nanoseconds()/1000000
-                                    if connection.fSuccessStart {
-                                        // Выполняется единоразово после старта
-                                        connection.status = STATUS_STARTED
-                                        first = false
-                                        connection.fSuccessStart = false
-                                        connection.fSuccessStop = true
-                                        connection.createLog(connection.manifest.Messages["CONNECTION_STARTED"])
-                                    }
+                                connection.manifest.Response.Ping = time.Now().Sub(started).Nanoseconds()/1000000
+                                if connection.fSuccessStart {
+                                    // Выполняется единоразово после старта
+                                    connection.status = STATUS_STARTED
+                                    first = false
+                                    connection.fSuccessStart = false
+                                    connection.fSuccessStop = true
+                                    connection.createLog(connection.manifest.Messages["CONNECTION_STARTED"])
                                 }
                             }
                     }
@@ -203,9 +192,9 @@ func (connection *BaseConnection) SetValues(values interface{}) bool {
         connection.createError(connection.manifest.Messages["CONNECTION_NOT_ACTIVATED"])
         return false
     }
-    connection.manifest.RequestJSON = utilities.ReplaceValues(connection.manifest.RequestJSON, values)
+    connection.manifest.Request.JSON = utilities.ReplaceValues(connection.manifest.Request.JSON, values)
     connection.fNewValues = true
-    params := utilities.ValuesToString(utilities.GetValues(connection.manifest.RequestJSON))
+    params := utilities.ValuesToString(utilities.GetValues(connection.manifest.Request.JSON))
     if connection.stopUntilSuccess(&connection.fNewValues, true, strings.Replace(constants.MSG_PARAMS_NOT_SET, constants.MSG_PLACE_PARAMS, params, 1)) {
         return true
     }
@@ -225,7 +214,7 @@ func (connection *BaseConnection) Start() bool {
            return false
     }
     // Если требуется регулярное получение данных то зацикоиваем чтение данных
-    if connection.manifest.Regular {
+    if connection.manifest.Request.Regular {
         connection.fWorking = true
         connection.fSuccessStart = true
         if connection.stopUntilSuccess(&connection.fSuccessStop, false, connection.manifest.Messages["CONNECTION_NOT_STARTED"]) {
@@ -252,7 +241,7 @@ func (connection *BaseConnection) Stop() bool {
     }
     connection.fWorking = false
     if connection.stopUntilSuccess(&connection.fSuccessStart, false, connection.manifest.Messages["CONNECTION_NOT_STOPED"]) {
-        connection.iResponse = 0
+        connection.manifest.Response.Index = 0
         return true
     }
     return false

@@ -17,12 +17,12 @@ const (
 )
 
 type Settings struct {
-    Name string                                             `json:"name"`
-    IsDefault bool                                          `json:"is_default"`
-    ParamsMain map[string]string                            `json:"params_main"`
-    ParamsExchanges map[string]map[string]map[string]string `json:"params_exchanges"`
-    StartedExchanges map[string]map[string]bool             `json:"started_exchanges"`
-    ParamsStartegies map[string]map[string]interface{}      `json:"params_strategies"`
+    Name string                                                         `json:"name"`
+    IsDefault bool                                                      `json:"is_default"`
+    ParamsMain map[string]string                                        `json:"params_main"`
+    ParamsExchanges map[string]map[string]map[string]map[string]string  `json:"params_exchanges"`
+    StartedExchanges map[string]map[string]map[string]bool                         `json:"started_exchanges"`
+    ParamsStartegies map[string]map[string]interface{}                  `json:"params_strategies"`
 }
 // Функция создания нового объекта настроеек
 func NewSettings(name string) *Settings {
@@ -30,8 +30,8 @@ func NewSettings(name string) *Settings {
     settings.Name = name
     settings.IsDefault = false
     settings.ParamsMain = make(map[string]string)
-    settings.ParamsExchanges = make(map[string]map[string]map[string]string)
-    settings.StartedExchanges = make(map[string]map[string]bool)
+    settings.ParamsExchanges = make(map[string]map[string]map[string]map[string]string)
+    settings.StartedExchanges = make(map[string]map[string]map[string]bool)
     settings.ParamsStartegies = make(map[string]map[string]interface{})
     return settings
 }
@@ -40,10 +40,10 @@ func (settings *Settings) Init() {
         settings.ParamsMain = make(map[string]string)
     }
     if settings.ParamsExchanges == nil {
-        settings.ParamsExchanges = make(map[string]map[string]map[string]string)
+        settings.ParamsExchanges = make(map[string]map[string]map[string]map[string]string)
     }
     if settings.StartedExchanges == nil {
-        settings.StartedExchanges = make(map[string]map[string]bool)
+        settings.StartedExchanges = make(map[string]map[string]map[string]bool)
     }
     if settings.ParamsStartegies == nil {
         settings.ParamsStartegies = make(map[string]map[string]interface{})
@@ -116,14 +116,16 @@ func (settings *Settings) Apply(terminal *market.Terminal) bool {
     for setExchange, entities := range settings.ParamsExchanges {
         exchange := terminal.Exchanges[setExchange]
         if exchange != nil {
-            for entity, properties := range entities {
-                if properties != nil {
-                    params := make(map[string]interface{})
-                    for param, value := range properties {
-                        params[param] = value
-                    }
-                    if !exchange.SetValues(entity, params) {
-                        return false
+            for entity, providers := range entities {
+                for provider, properties := range providers {
+                    if properties != nil {
+                        params := make(map[string]interface{})
+                        for param, value := range properties {
+                            params[param] = value
+                        }
+                        if !exchange.SetValues(entity, provider, params) {
+                            return false
+                        }
                     }
                 }
             }
@@ -133,13 +135,13 @@ func (settings *Settings) Apply(terminal *market.Terminal) bool {
     for setExchange, entities := range settings.StartedExchanges {
         exchange := terminal.Exchanges[setExchange]
         if exchange != nil {
-            for entity, value := range entities {
-            // if value {
-                _, success := exchange.Turn(entity, value)
-                if !success {
-                    return false
+            for entity, providers := range entities {
+                for provider, value := range providers {
+                    _, success := exchange.Turn(entity, provider, value)
+                    if !success {
+                        return false
+                    }
                 }
-            // }
             }
         }
     }

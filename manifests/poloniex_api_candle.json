@@ -1,58 +1,97 @@
 {
-    "name": "Depth_API",
-    "exchange": "Kucoin",
+    "name": "Candle_API",
+    "exchange": "Poloniex",
     "provider": "API",
-    "entity": "Depth",
-    "url": "https://api.kucoin.com/v1/open/orders",
-    "origin": "",
+    "entity": "Candle",
+    "url": "https://poloniex.com/public",
     "request": {
-        "symbol_field": "symbol",
+        "symbol_field": "currencyPair",
         "regular": true,
         "json": {
-            "symbol": "",
-            "limit": "10"
+            "command": "returnChartData",
+            "currencyPair": "",
+            "start": "1539411100",
+            "end": "9999999999",
+            "period": "300"
         }
     },
     "response": {
-        "success": [
-            "data"
-        ],
+        "success": [ ],
         "failed": {
             "message": [
-                "msg"
+                "error"
             ],
-            "description": []
+            "description": [ ]
+        },
+        "empty": {
+            "design": {
+                "check_int": 1010,
+                "kind": 6,
+                "path": [
+                    {
+                        "int": [0]
+                    }
+                ]
+            }
         },
         "values": [
             {
-                "name": "Asks",
+                "name": "Candles",
                 "design": {
                     "kind": 17,
-                    "path": [
-                        {
-                            "str": ["data", "SELL"]
-                        }
-                    ],
                     "value": {
                         "sub_values": [
                             {
-                                "name": "Price",
+                                "name": "Timestamp",
                                 "design": {
-                                    "kind": 14,
+                                    "kind": 24,
                                     "path": [
                                         {
-                                            "int": [0]
+                                            "str": ["date"]
                                         }
                                     ]
                                 }
                             },
                             {
-                                "name": "Amount",
+                                "name": "Open",
                                 "design": {
                                     "kind": 14,
                                     "path": [
                                         {
-                                            "int": [1]
+                                            "str": ["open"]
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "name": "Close",
+                                "design": {
+                                    "kind": 14,
+                                    "path": [
+                                        {
+                                            "str": ["close"]
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "name": "Min",
+                                "design": {
+                                    "kind": 14,
+                                    "path": [
+                                        {
+                                            "str": ["low"]
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "name": "Max",
+                                "design": {
+                                    "kind": 14,
+                                    "path": [
+                                        {
+                                            "str": ["high"]
                                         }
                                     ]
                                 }
@@ -63,55 +102,18 @@
                                     "kind": 14,
                                     "path": [
                                         {
-                                            "int": [2]
-                                        }
-                                    ]
-                                }
-                            }
-                        ]
-                    }
-                }
-            },
-            {
-                "name": "Bids",
-                "design": {
-                    "kind": 17,
-                    "path": [
-                        {
-                            "str": ["data", "BUY"]
-                        }
-                    ],
-                    "value": {
-                        "sub_values": [
-                            {
-                                "name": "Price",
-                                "design": {
-                                    "kind": 14,
-                                    "path": [
-                                        {
-                                            "int": [0]
+                                            "str": ["volume"]
                                         }
                                     ]
                                 }
                             },
                             {
-                                "name": "Amount",
+                                "name": "VolumeQuote",
                                 "design": {
                                     "kind": 14,
                                     "path": [
                                         {
-                                            "int": [1]
-                                        }
-                                    ]
-                                }
-                            },
-                            {
-                                "name": "Volume",
-                                "design": {
-                                    "kind": 14,
-                                    "path": [
-                                        {
-                                            "int": [2]
+                                            "str": ["quoteVolume"]
                                         }
                                     ]
                                 }

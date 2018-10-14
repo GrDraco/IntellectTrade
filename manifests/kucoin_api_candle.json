@@ -1,16 +1,19 @@
 {
-    "name": "Depth_API",
+    "name": "Candle_API",
     "exchange": "Kucoin",
     "provider": "API",
-    "entity": "Depth",
-    "url": "https://api.kucoin.com/v1/open/orders",
+    "entity": "Candle",
+    "url": "https://api.kucoin.com/v1/open/kline",
     "origin": "",
     "request": {
         "symbol_field": "symbol",
         "regular": true,
         "json": {
             "symbol": "",
-            "limit": "10"
+            "type": "0",
+            "from": "1539411100",
+            "to": "9999999999",
+            "limit": "0"
         }
     },
     "response": {
@@ -25,20 +28,20 @@
         },
         "values": [
             {
-                "name": "Asks",
+                "name": "Candles",
                 "design": {
                     "kind": 17,
                     "path": [
                         {
-                            "str": ["data", "SELL"]
+                            "str": ["data"]
                         }
                     ],
                     "value": {
                         "sub_values": [
                             {
-                                "name": "Price",
+                                "name": "Timestamp",
                                 "design": {
-                                    "kind": 14,
+                                    "kind": 24,
                                     "path": [
                                         {
                                             "int": [0]
@@ -47,7 +50,7 @@
                                 }
                             },
                             {
-                                "name": "Amount",
+                                "name": "Open",
                                 "design": {
                                     "kind": 14,
                                     "path": [
@@ -58,49 +61,34 @@
                                 }
                             },
                             {
-                                "name": "Volume",
+                                "name": "Close",
                                 "design": {
                                     "kind": 14,
                                     "path": [
                                         {
-                                            "int": [2]
-                                        }
-                                    ]
-                                }
-                            }
-                        ]
-                    }
-                }
-            },
-            {
-                "name": "Bids",
-                "design": {
-                    "kind": 17,
-                    "path": [
-                        {
-                            "str": ["data", "BUY"]
-                        }
-                    ],
-                    "value": {
-                        "sub_values": [
-                            {
-                                "name": "Price",
-                                "design": {
-                                    "kind": 14,
-                                    "path": [
-                                        {
-                                            "int": [0]
+                                            "int": [4]
                                         }
                                     ]
                                 }
                             },
                             {
-                                "name": "Amount",
+                                "name": "Min",
                                 "design": {
                                     "kind": 14,
                                     "path": [
                                         {
-                                            "int": [1]
+                                            "int": [3]
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "name": "Max",
+                                "design": {
+                                    "kind": 14,
+                                    "path": [
+                                        {
+                                            "int": [2]
                                         }
                                     ]
                                 }
@@ -111,7 +99,18 @@
                                     "kind": 14,
                                     "path": [
                                         {
-                                            "int": [2]
+                                            "int": [6]
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "name": "VolumeQuote",
+                                "design": {
+                                    "kind": 14,
+                                    "path": [
+                                        {
+                                            "int": [5]
                                         }
                                     ]
                                 }

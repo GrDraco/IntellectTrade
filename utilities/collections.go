@@ -1,6 +1,7 @@
 package utilities
 
 import (
+    "errors"
     "reflect"
     "strings"
     // "fmt"
@@ -66,41 +67,87 @@ func GetValues(data interface{}) map[string]string {
             return GetValues(value)
         }
         if reflect.TypeOf(value).Kind() == reflect.String {
-            res[strings.ToLower(key)] = value.(string)
+            res[key] = value.(string)
         }
         if reflect.TypeOf(value).Kind() == reflect.Float64 {
-            res[strings.ToLower(key)] = FloatToString(value.(float64), 8)
+            res[key] = FloatToString(value.(float64), 8)
         }
     }
     return res
 }
 
-func GetValue(data interface{}, fieldsName []string) interface{} {
+func AddValue(to interface{}, nameValue string, dataValue interface{}) interface{} {
+    newValue := make(map[string]interface{})
+    newValue[nameValue] = dataValue
+    return ReplaceValues(to, newValue)
+}
+
+func GetValueByStr(data interface{}, fieldsName []string) (interface{}, error) {
     if data == nil {
-        return nil
+        return nil, errors.New("In GetValueByStr data of fieldsName is nil")
     }
-    if len(fieldsName) == 0 {
-        return nil
-    }
-    if reflect.TypeOf(data).Kind() == reflect.Slice {
-        for _, d := range data.([]interface{}) {
-            return GetValue(d, fieldsName)
-        }
-    } else {
-        if len(fieldsName) > 1 {
-            return GetValue(data.(map[string]interface{})[fieldsName[0]], fieldsName[1:])
-        }
+    // if len(fieldsName) == 0 {
+    //     return nil, errors.New("In GetValueByStr count of fieldsName is 0")
+    // }
+    if len(fieldsName) > 0 {
+        // if reflect.TypeOf(data).Kind() != reflect.Map {
+        //     return nil, errors.New("Mismatched type in GetValueByStr")
+        // }
         switch reflect.TypeOf(data).Kind() {
+        case reflect.Slice:
+            for _, d := range data.([]interface{}) {
+                return GetValueByStr(d, fieldsName)
+            }
         case reflect.Map:
-            return data.(map[string]interface{})[fieldsName[0]]
-        case reflect.String:
-            return data.(string)
-        case reflect.Float64:
-            return data.(float64)
+            if data.(map[string]interface{})[fieldsName[0]] != nil {
+                if reflect.TypeOf(data.(map[string]interface{})[fieldsName[0]]).Kind() == reflect.Map {
+                    return GetValueByStr(data.(map[string]interface{})[fieldsName[0]], fieldsName[1:])
+                } else {
+                    return data.(map[string]interface{})[fieldsName[0]], nil
+                }
+            }
         }
-        return data
+        return nil, nil
+    } else {
+        return data, nil
     }
-    return nil
+    // if reflect.TypeOf(data).Kind() == reflect.Slice {
+    //     for _, d := range data.([]interface{}) {
+    //         return GetValueByStr(d, fieldsName)
+    //     }
+    // } else {
+    //     if len(fieldsName) > 1 {
+    //         return GetValueByStr(data.(map[string]interface{})[fieldsName[0]], fieldsName[1:])
+    //     }
+    //     if reflect.TypeOf(data).Kind() == reflect.Map {
+    //         return data.(map[string]interface{})[fieldsName[0]]
+    //     }
+    //     return nil
+    // }
+    // return nil
+}
+
+func GetValueByInt(data interface{}, fieldsIndex []int64) (interface{}, error) {
+    if data == nil {
+        return nil, errors.New("In GetValueByInt data of fieldsName is nil")
+    }
+    if len(fieldsIndex) > 0 {
+        // if reflect.TypeOf(data).Kind() != reflect.Slice {
+        //     return nil, errors.New("Mismatched type in GetValueByInt")
+        // }
+        if reflect.TypeOf(data).Kind() == reflect.Slice {
+            if data.([]interface{})[fieldsIndex[0]] != nil {
+                if reflect.TypeOf(data.([]interface{})[fieldsIndex[0]]).Kind() == reflect.Slice {
+                    return GetValueByInt(data.([]interface{})[fieldsIndex[0]], fieldsIndex[1:])
+                } else {
+                    return data.([]interface{})[fieldsIndex[0]], nil
+                }
+            }
+        }
+        return nil, nil
+    } else {
+        return data, nil
+    }
 }
 
 func ArrayToString(array []interface{}) string {

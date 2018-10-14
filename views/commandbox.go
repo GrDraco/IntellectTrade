@@ -126,7 +126,7 @@ func ParseCommand(cmd string) (command *packUI.Command, err string) {
             command.Cmd = cmd
             command.ResetParams()
             if command.DefaultParam != "" {
-                command.Params[command.DefaultParam].Value = strings.ToLower(parts[1])
+                command.Params[command.DefaultParam].Value = parts[1]//strings.ToLower(parts[1])
                 return
             }
         }
@@ -159,7 +159,7 @@ func ParseCommand(cmd string) (command *packUI.Command, err string) {
                         command.Params[paramParts[0]].Value = commands.CMD_VALUE_EMPTY
                     }
                 }
-                command.Params[paramParts[0]].Value = strings.ToLower(paramParts[1])
+                command.Params[paramParts[0]].Value = paramParts[1]//strings.ToLower(paramParts[1])
             } else {
                 if param.IsFlag {
                     command.Params[paramParts[0]].Value = commands.CMD_VALUE_FLAG

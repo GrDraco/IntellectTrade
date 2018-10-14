@@ -5,9 +5,12 @@
     "entity": "Tick",
     "url": "https://api.kucoin.com/v1/open/tick",
     "origin": "",
-    "request_sumbol_field": "symbol",
-    "request_json": {
-        "symbol": ""
+    "request": {
+        "symbol_field": "symbol",
+        "regular": true,
+        "json": {
+            "symbol": ""
+        }
     },
     "response": {
         "success": [
@@ -19,30 +22,62 @@
             ],
             "description": []
         },
-        "values": {
-            "ask": [
-                "data",
-                "buy"
-            ],
-            "bid": [
-                "data",
-                "sell"
-            ],
-            "volume": [
-                "data",
-                "volValue"
-            ],
-            "symbol": [
-                "data",
-                "symbol"
-            ],
-            "timestamp": [
-                "timestamp"
-            ],
-            "ping": [
-                "ping"
-            ]
-        }
-    },
-    "regular": true
+        "values": [
+            {
+                "name": "Ask",
+                "design": {
+                    "kind": 14,
+                    "path": [
+                        {
+                            "str": ["data", "buy"]
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "Bid",
+                "design": {
+                    "kind": 14,
+                    "path": [
+                        {
+                            "str": ["data", "sell"]
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "Volume",
+                "design": {
+                    "kind": 14,
+                    "path": [
+                        {
+                            "str": ["data", "volValue"]
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "Symbol",
+                "design": {
+                    "kind": 24,
+                    "path": [
+                        {
+                            "str": ["data", "symbol"]
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "Timestamp",
+                "design": {
+                    "kind": 24,
+                    "path": [
+                        {
+                            "str": ["data", "timestamp"]
+                        }
+                    ]
+                }
+            }
+        ]
+    }
 }

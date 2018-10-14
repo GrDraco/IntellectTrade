@@ -20,7 +20,7 @@ type Api struct {
     request *http.Request
     err error
 }
-//api.manifest.RequestJSON = utilities.ReplaceValues(api.manifest.RequestJSON, data[0])
+//api.manifest.Request.JSON = utilities.ReplaceValues(api.manifest.Request.JSON, data[0])
 func NewApi(manifest *Manifest) *Api {
     // Выделение памяти под сокет
     api := &Api {}
@@ -29,7 +29,7 @@ func NewApi(manifest *Manifest) *Api {
     api.init = func() error {
         var url = api.manifest.URL//"?symbol=BTC-USDT"
         // Формируем url параметрами указаными в запросе манифеста
-        values := utilities.GetValues(api.manifest.RequestJSON)
+        values := utilities.GetValues(api.manifest.Request.JSON)
         if len(values) > 0 {
             url = url + "?"
         }

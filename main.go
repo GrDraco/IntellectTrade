@@ -69,10 +69,13 @@ func cmdTerminalExecute(command *packUI.Command) bool {
     off := command.Params[commands.CMD_TERMINAL_PARAM_OFF].Value
     name := command.Params[commands.CMD_TERMINAL_PARAM_NAME].Value
     entity := command.Params[commands.CMD_TERMINAL_PARAM_ENTITY].Value
+    provider := command.Params[commands.CMD_TERMINAL_PARAM_PROVIDER].Value
     symbol := command.Params[commands.CMD_TERMINAL_PARAM_SYMBOL].Value
+    param := command.Params[commands.CMD_TERMINAL_PARAM_PARAM].Value
+    value := command.Params[commands.CMD_TERMINAL_PARAM_VALUE].Value
     terminal := frame.Controls["terminal"].(*market.Terminal)
     // frame.Log("on " + on + " name " + name + " entity " + entity + " symbol " + symbol)
-    if (on != "" || off != "") && name != "" && entity != "" {
+    if (on != "" || off != "") && name != "" && entity != "" && provider != "" {
         var start bool
         if on != "" {
             start = true
@@ -82,28 +85,58 @@ func cmdTerminalExecute(command *packUI.Command) bool {
         }
         exchange := terminal.Exchanges[name]
         if exchange != nil {
-            if status, success := exchange.Turn(entity, start); success {
+            if status, success := exchange.Turn(entity, provider, start); success {
                 // Сохраняем в настройках
                 if settings.StartedExchanges[name] == nil {
-                    settings.StartedExchanges[name] = make(map[string]bool)
+                    settings.StartedExchanges[name] = make(map[string]map[string]bool)
                 }
-                settings.StartedExchanges[name][entity] = status
+                if settings.StartedExchanges[name][entity] == nil {
+                    settings.StartedExchanges[name][entity] = make(map[string]bool)
+                }
+                settings.StartedExchanges[name][entity][provider] = status
                 return true
             }
         }
     }
-    if name != "" && entity != "" && symbol != "" {
+    if name != "" && entity != "" && provider != "" && symbol != "" {
         exchange := terminal.Exchanges[name]
         if exchange != nil {
             params := make(map[string]interface{})
-            params[exchange.GetManifest(entity).RequestSymbolField] = symbol
-            if exchange.SetValues(entity, params) {
+            nameParam := exchange.GetManifest(entity, provider).Request.SymbolField
+            params[nameParam] = symbol
+            if exchange.SetValues(entity, provider, params) {
                 // Сохраняем в настройках
                 if settings.ParamsExchanges[name] == nil {
-                    settings.ParamsExchanges[name] = make(map[string]map[string]string)
-                    settings.ParamsExchanges[name][entity] = make(map[string]string)
+                    settings.ParamsExchanges[name] = make(map[string]map[string]map[string]string)
                 }
-                settings.ParamsExchanges[name][entity][exchange.GetManifest(entity).RequestSymbolField] = symbol
+                if settings.ParamsExchanges[name][entity] == nil {
+                    settings.ParamsExchanges[name][entity] = make(map[string]map[string]string)
+                }
+                if settings.ParamsExchanges[name][entity][provider] == nil {
+                    settings.ParamsExchanges[name][entity][provider] = make(map[string]string)
+                }
+                settings.ParamsExchanges[name][entity][provider][nameParam] = symbol
+                return true
+            }
+        }
+    }
+    if name != "" && entity != "" && provider != "" && param != "" && value != "" {
+        exchange := terminal.Exchanges[name]
+        if exchange != nil {
+            params := make(map[string]interface{})
+            params[param] = value
+            if exchange.SetValues(entity, provider, params) {
+                // Сохраняем в настройках
+                if settings.ParamsExchanges[name] == nil {
+                    settings.ParamsExchanges[name] = make(map[string]map[string]map[string]string)
+                }
+                if settings.ParamsExchanges[name][entity] == nil {
+                    settings.ParamsExchanges[name][entity] = make(map[string]map[string]string)
+                }
+                if settings.ParamsExchanges[name][entity][provider] == nil {
+                    settings.ParamsExchanges[name][entity][provider] = make(map[string]string)
+                }
+                settings.ParamsExchanges[name][entity][provider][param] = symbol
                 return true
             }
         }
@@ -350,9 +383,18 @@ func main() {
             packUI.NewParam(commands.CMD_TERMINAL_PARAM_ENTITY, commands.CMD_TERMINAL_PARAM_ENTITY_DISCRIPTION,
                      commands.CMD_TERMINAL_PARAM_ENTITY_EXAMPLE, commands.CMD_TERMINAL_PARAM_ENTITY_ISFLAG,
                      commands.CMD_TERMINAL_PARAM_ENTITY_ALLOWED_EMPTY),
+            packUI.NewParam(commands.CMD_TERMINAL_PARAM_PROVIDER, commands.CMD_TERMINAL_PARAM_PROVIDER_DISCRIPTION,
+                     commands.CMD_TERMINAL_PARAM_PROVIDER_EXAMPLE, commands.CMD_TERMINAL_PARAM_PROVIDER_ISFLAG,
+                     commands.CMD_TERMINAL_PARAM_PROVIDER_ALLOWED_EMPTY),
             packUI.NewParam(commands.CMD_TERMINAL_PARAM_SYMBOL, commands.CMD_TERMINAL_PARAM_SYMBOL_DISCRIPTION,
                      commands.CMD_TERMINAL_PARAM_SYMBOL_EXAMPLE, commands.CMD_TERMINAL_PARAM_SYMBOL_ISFLAG,
-                     commands.CMD_TERMINAL_PARAM_SYMBOL_ALLOWED_EMPTY)},
+                     commands.CMD_TERMINAL_PARAM_SYMBOL_ALLOWED_EMPTY),
+            packUI.NewParam(commands.CMD_TERMINAL_PARAM_PARAM, commands.CMD_TERMINAL_PARAM_PARAM_DISCRIPTION,
+                     commands.CMD_TERMINAL_PARAM_PARAM_EXAMPLE, commands.CMD_TERMINAL_PARAM_PARAM_ISFLAG,
+                     commands.CMD_TERMINAL_PARAM_PARAM_ALLOWED_EMPTY),
+            packUI.NewParam(commands.CMD_TERMINAL_PARAM_VALUE, commands.CMD_TERMINAL_PARAM_VALUE_DISCRIPTION,
+                     commands.CMD_TERMINAL_PARAM_VALUE_EXAMPLE, commands.CMD_TERMINAL_PARAM_VALUE_ISFLAG,
+                     commands.CMD_TERMINAL_PARAM_VALUE_ALLOWED_EMPTY)},
         commands.CMD_TERMINAL_PARAMS_REQUIRED,
         commands.CMD_TERMINAL_DEFAULT_PARAM,
         cmdTerminalExecute)

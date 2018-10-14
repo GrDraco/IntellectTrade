@@ -6,14 +6,19 @@
     "url": "wss://api.hitbtc.com/api/2/ws",
     "origin": "http://localhost/",
     "request_sumbol_field": "symbol",
-    "request_json": {
-        "method": "subscribeTicker",
-        "params": {
-            "symbol": ""
-        },
-        "id": 123
+    "request": {
+        "symbol_field": "symbol",
+        "regular": true,
+        "json": {
+            "method": "subscribeTicker",
+            "params": {
+                "symbol": ""
+            },
+            "id": 123
+        }
     },
     "response": {
+        "skip_response": 1,
         "success": [
             "params"
         ],
@@ -27,28 +32,62 @@
                 "description"
             ]
         },
-        "values": {
-            "ask": [
-                "params",
-                "ask"
-            ],
-            "bid": [
-                "params",
-                "bid"
-            ],
-            "volume": [
-                "params",
-                "volume"
-            ],
-            "symbol": [
-                "params",
-                "symbol"
-            ],
-            "timestamp": [
-                "params",
-                "timestamp"
-            ]
-        }
-    },
-    "regular": true
+        "values": [
+            {
+                "name": "Ask",
+                "design": {
+                    "kind": 14,
+                    "path": [
+                        {
+                            "str": ["params", "ask"]
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "Bid",
+                "design": {
+                    "kind": 14,
+                    "path": [
+                        {
+                            "str": ["params", "bid"]
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "Volume",
+                "design": {
+                    "kind": 14,
+                    "path": [
+                        {
+                            "str": ["params", "volume"]
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "Symbol",
+                "design": {
+                    "kind": 24,
+                    "path": [
+                        {
+                            "str": ["params", "symbol"]
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "Timestamp",
+                "design": {
+                    "kind": 24,
+                    "path": [
+                        {
+                            "str": ["params", "timestamp"]
+                        }
+                    ]
+                }
+            }
+        ]
+    }
 }

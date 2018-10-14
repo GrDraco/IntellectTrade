@@ -1,23 +1,23 @@
 {
-    "name": "Depth_Socket",
+    "name": "Candle_Socket",
     "exchange": "HitBTC",
     "provider": "WebSocket",
-    "entity": "Depth",
+    "entity": "Candle",
     "url": "wss://api.hitbtc.com/api/2/ws",
     "origin": "http://localhost/",
     "request": {
         "symbol_field": "symbol",
         "regular": true,
         "json": {
-            "method": "subscribeOrderbook",
+            "method": "subscribeCandles",
             "params": {
-                "symbol": ""
+                "symbol": "",
+                "period": "M1"
             },
             "id": 123
         }
     },
     "response": {
-        "is_updates": true,
         "skip_response": 1,
         "success": [
             "params"
@@ -34,71 +34,89 @@
         },
         "values": [
             {
-                "name": "Asks",
+                "name": "Candles",
                 "design": {
                     "kind": 17,
                     "path": [
                         {
-                            "str": ["params", "ask"]
+                            "str": ["params", "data"]
                         }
                     ],
                     "value": {
                         "sub_values": [
                             {
-                                "name": "Price",
+                                "name": "Timestamp",
                                 "design": {
-                                    "kind": 14,
+                                    "kind": 24,
                                     "path": [
                                         {
-                                            "str": ["price"]
+                                            "str": ["timestamp"]
                                         }
                                     ]
                                 }
                             },
                             {
-                                "name": "Amount",
+                                "name": "Open",
                                 "design": {
                                     "kind": 14,
                                     "path": [
                                         {
-                                            "str": ["size"]
-                                        }
-                                    ]
-                                }
-                            }
-                        ]
-                    }
-                }
-            },
-            {
-                "name": "Bids",
-                "design": {
-                    "kind": 17,
-                    "path": [
-                        {
-                            "str": ["params", "bid"]
-                        }
-                    ],
-                    "value": {
-                        "sub_values": [
-                            {
-                                "name": "Price",
-                                "design": {
-                                    "kind": 14,
-                                    "path": [
-                                        {
-                                            "str": ["price"]
+                                            "str": ["open"]
                                         }
                                     ]
                                 }
                             },
                             {
-                                "name": "Amount",
+                                "name": "Close",
                                 "design": {
                                     "kind": 14,
                                     "path": [
                                         {
-                                            "str": ["size"]
+                                            "str": ["close"]
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "name": "Min",
+                                "design": {
+                                    "kind": 14,
+                                    "path": [
+                                        {
+                                            "str": ["min"]
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "name": "Max",
+                                "design": {
+                                    "kind": 14,
+                                    "path": [
+                                        {
+                                            "str": ["max"]
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "name": "Volume",
+                                "design": {
+                                    "kind": 14,
+                                    "path": [
+                                        {
+                                            "str": ["volume"]
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "name": "VolumeQuote",
+                                "design": {
+                                    "kind": 14,
+                                    "path": [
+                                        {
+                                            "str": ["volumeQuote"]
                                         }
                                     ]
                                 }

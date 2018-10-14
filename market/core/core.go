@@ -119,6 +119,7 @@ type Candle struct {
     Volume float64      // Объем за период
     VolumeQuote float64 // ????
     Timestamp string    // Время
+    Symbol string       // Торговая пара
 }
 // Тик
 type Tick struct {
@@ -126,6 +127,7 @@ type Tick struct {
     Bid float64         // Цена bid - предложение
     Volume float64      // Объем
     Timestamp string    // Время
+    Symbol string       // Торгоая пара
 }
 // Стакан
 type Depth struct {

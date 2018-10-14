@@ -1,36 +1,38 @@
 {
-    "name": "Depth_Socket",
-    "exchange": "HitBTC",
-    "provider": "WebSocket",
+    "name": "Depth_API",
+    "exchange": "Poloniex",
+    "provider": "API",
     "entity": "Depth",
-    "url": "wss://api.hitbtc.com/api/2/ws",
+    "url": "wss://api2.poloniex.com",
     "origin": "http://localhost/",
     "request": {
-        "symbol_field": "symbol",
+        "symbol_field": "channel",
         "regular": true,
         "json": {
-            "method": "subscribeOrderbook",
-            "params": {
-                "symbol": ""
-            },
-            "id": 123
+            "command": "subscribe",
+            "channel": ""
         }
     },
     "response": {
         "is_updates": true,
         "skip_response": 1,
-        "success": [
-            "params"
-        ],
+        "success": [ ],
         "failed": {
             "message": [
-                "error",
-                "message"
+                "error"
             ],
-            "description": [
-                "error",
-                "description"
-            ]
+            "description": [ ]
+        },
+        "empty": {
+            "design": {
+                "check_int": 1010,
+                "kind": 6,
+                "path": [
+                    {
+                        "int": [0]
+                    }
+                ]
+            }
         },
         "values": [
             {
@@ -39,9 +41,20 @@
                     "kind": 17,
                     "path": [
                         {
-                            "str": ["params", "ask"]
+                            "int": [2]
                         }
                     ],
+                    "check": {
+                        "design": {
+                            "check_int": 1,
+                            "kind": 6,
+                            "path": [
+                                {
+                                    "int": [1]
+                                }
+                            ]
+                        }
+                    },
                     "value": {
                         "sub_values": [
                             {
@@ -50,7 +63,7 @@
                                     "kind": 14,
                                     "path": [
                                         {
-                                            "str": ["price"]
+                                            "int": [2]
                                         }
                                     ]
                                 }
@@ -61,7 +74,7 @@
                                     "kind": 14,
                                     "path": [
                                         {
-                                            "str": ["size"]
+                                            "int": [3]
                                         }
                                     ]
                                 }
@@ -76,9 +89,20 @@
                     "kind": 17,
                     "path": [
                         {
-                            "str": ["params", "bid"]
+                            "int": [2]
                         }
                     ],
+                    "check": {
+                        "design": {
+                            "check_int": 0,
+                            "kind": 6,
+                            "path": [
+                                {
+                                    "int": [1]
+                                }
+                            ]
+                        }
+                    },
                     "value": {
                         "sub_values": [
                             {
@@ -87,7 +111,7 @@
                                     "kind": 14,
                                     "path": [
                                         {
-                                            "str": ["price"]
+                                            "int": [2]
                                         }
                                     ]
                                 }
@@ -98,7 +122,7 @@
                                     "kind": 14,
                                     "path": [
                                         {
-                                            "str": ["size"]
+                                            "int": [3]
                                         }
                                     ]
                                 }
