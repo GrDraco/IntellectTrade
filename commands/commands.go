@@ -217,12 +217,6 @@ const (
 )
 /*
     zil
-    hitbtc
-        public ae143ae169b51a19397f8eb74fe1f2ad
-        secret c950c636c4bbc2c39010b3c4d67e02d5
-    kucoin
-        public 5bae0b91857b8732588c650f
-        secret 31bf1a3-b53a-4832-8d28-1af254bfb1e8
 
     app redraw
 
